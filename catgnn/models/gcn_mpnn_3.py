@@ -2,8 +2,6 @@ from catgnn.integral_transform.mpnn_3 import BaseMPNNLayer_3
 from catgnn.typing import *
 import torch
 from torch import nn
-import numpy as np
-from torch_geometric.utils import add_self_loops, degree # TODO - add our own
 import torch_scatter
 
 
@@ -16,16 +14,14 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
         self.mlp_update = nn.LeakyReLU() # \phi
     
     def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
         # Add self-loops
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
-        # Step 3: Compute normalization.
-        row, col = E
-        deg = degree(col, X.size(0), dtype=X.dtype)
-        deg_inv_sqrt = deg.pow(-0.5)
-        deg_inv_sqrt[deg_inv_sqrt == float('inf')] = 0
-        self.norm = deg_inv_sqrt[row] * deg_inv_sqrt[col]
-        #print(norm.shape)
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         out = self.pipeline(V, E, X)
         return self.mlp_update(out)
@@ -42,6 +38,7 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
 
     def define_pushforward(self, kernel):
         def pushforward(V, E):
+            # Need to call preimage here
             return kernel(E), self.t(E)
         return pushforward
 

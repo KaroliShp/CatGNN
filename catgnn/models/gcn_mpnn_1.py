@@ -2,7 +2,6 @@ from catgnn.integral_transform.mpnn_1 import BaseMPNNLayer_1
 from catgnn.typing import *
 import torch
 from torch import nn
-import numpy as np
 
  
 class GCNLayer_MPNN_1(BaseMPNNLayer_1):
@@ -58,22 +57,3 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
                 total += val
             return total
         return aggregator
-
-
-if __name__ == '__main__':
-    # Example graph above
-    # V is a set of nodes - usual representation
-    V = np.array([0, 1, 2, 3])
-
-    # E is a set of edges - usual sparse representation in PyG
-    E = np.array([(0,1), (1,0),
-                (1,2), (2,1),
-                (2,3), (3,2)
-    ])
-
-    # Feature matrix - usual representation
-    X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
-
-    gcn_layer = GCNLayer_MPNN_1(2,2)
-    #print([p for p in gcn_layer.parameters()])
-    print(gcn_layer(V, E, X))

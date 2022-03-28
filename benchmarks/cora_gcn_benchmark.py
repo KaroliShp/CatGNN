@@ -5,7 +5,6 @@ from catgnn.models.gcn_mpnn_3 import GCNLayer_MPNN_3
 import torch
 from torch import nn
 from catgnn.datasets.cora import CoraDataset
-import numpy as np
 import torch_geometric
 
 
@@ -95,6 +94,6 @@ def benchmark_pyg_gcn():
 
 if __name__ == '__main__':
     #benchmark_catgnn_gcn_1()
-    benchmark_catgnn_gcn_2()
-    #benchmark_catgnn_gcn_3()
+    #benchmark_catgnn_gcn_2()
+    benchmark_catgnn_gcn_3()
     #benchmark_pyg_gcn()
