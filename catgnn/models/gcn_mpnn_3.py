@@ -15,7 +15,7 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
         self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
         self.mlp_update = nn.LeakyReLU() # \phi
     
-    def forward(self, V: List[Type_V], E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
         # Add self-loops
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 

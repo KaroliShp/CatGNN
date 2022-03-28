@@ -34,23 +34,19 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
     def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
         def kernel_transformation(E: torch.Tensor) -> torch.Tensor:
             # 2. Linearly transform node feature matrix and 4. Normalize node features
-            E = torch.cat((torch.tensor([[self.v_counter, self.v_counter]], dtype=E.dtype), E),dim=0)
-            norm = torch.sqrt(1/( (self.degrees[self.v_counter].repeat(E.shape[0], 1)+1) * (self.degrees[E[:,1]].view(-1,1)+1) ))
+            E = torch.cat((torch.tensor([[self.v_counter], [self.v_counter]], dtype=E.dtype), E), dim=1)
+            norm = torch.sqrt(1/( (self.degrees[self.v_counter].repeat(E.shape[1], 1)+1) * (self.degrees[E[1]].view(-1,1)+1) ))
             self.v_counter += 1
-            return self.mlp_msg(pullback(E).float()) * norm
+            return self.mlp_msg(pullback(E)) * norm
         
         return kernel_transformation
     
     def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
         def pushforward(V: torch.Tensor) -> torch.Tensor:
-            #print(f'V: {V[:5]}')
             pE = self.t_1(V)
             bag = []
-            #print(f'pE: {pE[:5]}')
             for e in pE:
-                #print(f'e: {e}')
                 bag.append(kernel_transformation(e))
-            #print(f'calls to kernel transformation: {len(bag)}') - 2708 - the number of nodes in V
             return bag
         
         return pushforward

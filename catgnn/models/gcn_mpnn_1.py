@@ -37,7 +37,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
     def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
         def kernel_transformation(e: Type_E) -> Type_R:
             # 2. Linearly transform node feature matrix and 4. Normalize node features
-            return self.mlp_msg(pullback(e).float()) * self.norm[e[2]]
+            return self.mlp_msg(pullback(e)) * self.norm[e[2]]
         return kernel_transformation
     
     def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:

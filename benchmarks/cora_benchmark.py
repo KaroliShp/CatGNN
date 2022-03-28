@@ -59,7 +59,7 @@ def benchmark(model_nn, sender_to_receiver=True):
     train_mask, val_mask, test_mask = cora_dataset.get_split_masks()
 
     V = cora_dataset.get_vertices()
-    E = cora_dataset.get_edges(sender_to_receiver).T
+    E = cora_dataset.get_edges(sender_to_receiver)
     X = cora_dataset.get_features()
 
     model = model_nn(input_dim=train_x.shape[-1], output_dim=7)
@@ -72,22 +72,19 @@ def benchmark(model_nn, sender_to_receiver=True):
 
 
 def benchmark_catgnn_gcn_1():
-    """
-    Currently requires V, E to be numpy, also wrong E shape
-    """
     benchmark(CatGNN_GCN_1, sender_to_receiver=False)
 
 
 def benchmark_catgnn_gcn_2():
     """
-    Wrong E shape, requires E to be sorted by receiver and receivers must be in the first column/row
+    Requires E to be sorted by receiver
     """
     benchmark(CatGNN_GCN_2, sender_to_receiver=False)
 
 
 def benchmark_catgnn_gcn_3():
     """
-    Correct E shape
+    Pushforward
     """
     benchmark(CatGNN_GCN_3, sender_to_receiver=False)
 
