@@ -1,15 +1,14 @@
 from torch_geometric.datasets import Planetoid
-import numpy as np
 import torch
+from catgnn.datasets.dataset import Dataset
 
-class CoraDataset(object):
+class CoraDataset(Dataset):
 
     def __init__(self):
         super(CoraDataset, self).__init__()
 
         cora_pyg = Planetoid(root='/tmp/Cora', name='Cora', split="full")
         self.cora_data = cora_pyg[0]
-
 
     def train_val_test_split(self):
         train_x = self.cora_data.x[self.cora_data.train_mask]
@@ -23,15 +22,12 @@ class CoraDataset(object):
 
         return train_x, train_y, valid_x, valid_y, test_x, test_y
 
-
     def get_split_masks(self):
         return self.cora_data.train_mask, self.cora_data.val_mask, self.cora_data.test_mask
-
 
     def get_features(self):
         return self.cora_data.x
     
-
     def get_edges(self, sender_to_receiver=True):
         if sender_to_receiver:
             return self.cora_data.edge_index
@@ -40,7 +36,6 @@ class CoraDataset(object):
             E_swapped = E_swapped[E_swapped[:, 1].sort()[1]]
             return torch.cat((E_swapped[:,1].view(-1,1), E_swapped[:,0].view(-1,1)), dim=1).T    
     
-
     def get_vertices(self):
         V_data = set()
         for e in self.cora_data.edge_index.T.numpy():
@@ -48,10 +43,5 @@ class CoraDataset(object):
         V_data = torch.tensor(list(V_data), dtype=torch.int64)
         return V_data
 
-
     def validate_dataset(self):
         raise NotImplementedError
-
-
-if __name__ == '__main__':
-    dataset = CoraDataset()
