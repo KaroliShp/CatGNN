@@ -38,8 +38,7 @@ class CoraDataset(object):
         else:
             E_swapped = self.cora_data.edge_index.T
             E_swapped = E_swapped[E_swapped[:, 1].sort()[1]]
-            E_swapped = torch.cat((E_swapped[:,1].view(-1,1), E_swapped[:,0].view(-1,1)), dim=1)
-            return E_swapped
+            return torch.cat((E_swapped[:,1].view(-1,1), E_swapped[:,0].view(-1,1)), dim=1).T    
     
 
     def get_vertices(self):

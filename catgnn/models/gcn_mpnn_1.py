@@ -13,22 +13,15 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
         self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
         self.mlp_update = nn.LeakyReLU() # \phi
     
-    def forward(self, V: List[Type_V], E: List[Type_E], X: Type_R) -> Type_R:
+    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:        
+        # 3. Compute degrees for normalization
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+
         # 1. Add self loops to the adjacency matrix
-        for v in V:
-            E = np.concatenate((E, [(v,v)]), axis=0)
-        
-        # 3. Compute normalization and provide as edge features
-        self.deg_i = {}
-        for e in E:
-            if e[0] in self.deg_i:
-                self.deg_i[e[0]] += 1
-            else:
-                self.deg_i[e[0]] = 1
-        self.norm = {}
-        for e in E:
-            assert tuple(e) not in self.norm
-            self.norm[tuple(e)] = torch.sqrt(1/torch.tensor(self.deg_i[e[0]] * self.deg_i[e[1]]))
+        E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
+
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         # Do pipeline
         out = self.pipeline(V, E, X)
@@ -41,27 +34,27 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
             return f(self.s(e))
         return pullback
     
-    def define_kernel(self, er: Type_E_R) -> Type_E_R:
+    def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
         def kernel_transformation(e: Type_E) -> Type_R:
             # 2. Linearly transform node feature matrix and 4. Normalize node features
-            return self.mlp_msg(er(e).float()) * self.norm[tuple(e)]
+            return self.mlp_msg(pullback(e).float()) * self.norm[e[2]]
         return kernel_transformation
     
-    def define_pushforward(self, edge_messages: Type_E_R) -> Type_V_NR:
+    def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
         def pushforward(v: Type_V) -> Type_NR:
             pE = self.t_1(v)
 
             # Now we need to apply edge_messages function for each element of pE
             bag_of_messages = []
             for e in pE:
-                bag_of_messages.append(edge_messages(e))
+                bag_of_messages.append(kernel_transformation(e))
             return bag_of_messages
         return pushforward
 
-    def define_aggregator(self, bag_of_values: Type_V_NR) -> Type_V_R:
+    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
         def aggregator(v: Type_V) -> Type_R:
             total = 0
-            for val in bag_of_values(v):
+            for val in pushforward(v):
                 total += val
             return total
         return aggregator

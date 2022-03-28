@@ -49,7 +49,7 @@ class PyG_GCN(nn.Module):
         return self.gcn_layer(X, E)
 
 
-def benchmark(model_nn, sender_to_receiver=True, numpy_VE = False):
+def benchmark(model_nn, sender_to_receiver=True):
     """
     Benchmark Cora dataset
     """
@@ -58,14 +58,9 @@ def benchmark(model_nn, sender_to_receiver=True, numpy_VE = False):
     train_x, train_y, val_x, val_y, test_x, test_y = cora_dataset.train_val_test_split()
     train_mask, val_mask, test_mask = cora_dataset.get_split_masks()
 
-    if numpy_VE:
-        V = cora_dataset.get_vertices().numpy()
-        E = cora_dataset.get_edges(sender_to_receiver).T.numpy()
-        X = cora_dataset.get_features()
-    else:
-        V = cora_dataset.get_vertices()
-        E = cora_dataset.get_edges(sender_to_receiver)
-        X = cora_dataset.get_features()
+    V = cora_dataset.get_vertices()
+    E = cora_dataset.get_edges(sender_to_receiver).T
+    X = cora_dataset.get_features()
 
     model = model_nn(input_dim=train_x.shape[-1], output_dim=7)
 
@@ -80,7 +75,7 @@ def benchmark_catgnn_gcn_1():
     """
     Currently requires V, E to be numpy, also wrong E shape
     """
-    benchmark(CatGNN_GCN_1, numpy_VE=True)
+    benchmark(CatGNN_GCN_1, sender_to_receiver=False)
 
 
 def benchmark_catgnn_gcn_2():
@@ -103,6 +98,6 @@ def benchmark_pyg_gcn():
 
 if __name__ == '__main__':
     #benchmark_catgnn_gcn_1()
-    #benchmark_catgnn_gcn_2()
+    benchmark_catgnn_gcn_2()
     #benchmark_catgnn_gcn_3()
-    benchmark_pyg_gcn()
+    #benchmark_pyg_gcn()
