@@ -63,7 +63,10 @@ class BaseMPNNLayer_1(nn.Module):
             raise NotImplementedError
         return aggregator
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: Type_R):
+    def update(self, output):
+        raise NotImplementedError
+
+    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor):
         # Prepare edge indices for span diagram and the feature function f : V -> R
         self.E_indexed = self._add_edge_indices(E)
         self._set_preimages(V)
@@ -79,4 +82,5 @@ class BaseMPNNLayer_1(nn.Module):
         updated_features = torch.Tensor()
         for v in V:
             updated_features = torch.hstack((updated_features,aggregator(v)))
-        return updated_features.reshape(X.shape[0],-1)
+
+        return self.update(updated_features.view(X.shape[0],-1))

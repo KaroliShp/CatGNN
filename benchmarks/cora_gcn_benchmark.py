@@ -4,7 +4,7 @@ from catgnn.models.gcn_mpnn_2 import GCNLayer_MPNN_2
 from catgnn.models.gcn_mpnn_3 import GCNLayer_MPNN_3
 import torch
 from torch import nn
-from catgnn.datasets.cora import CoraDataset
+from catgnn.datasets.planetoid import PlanetoidDataset
 import torch_geometric
 
 
@@ -52,7 +52,7 @@ def benchmark(model_nn, sender_to_receiver=True):
     """
     Benchmark Cora dataset
     """
-    cora_dataset = CoraDataset()
+    cora_dataset = PlanetoidDataset('Cora')
 
     train_x, train_y, val_x, val_y, test_x, test_y = cora_dataset.train_val_test_split()
     train_mask, val_mask, test_mask = cora_dataset.get_split_masks()

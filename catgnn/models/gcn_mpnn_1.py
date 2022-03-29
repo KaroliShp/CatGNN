@@ -22,11 +22,8 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
         # 3. Compute normalization and provide as edge features for kernel transform
         self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
-        # Do pipeline
-        out = self.pipeline(V, E, X)
-
-        # Do update (non-linearity)
-        return self.mlp_update(out)
+        # Do integral transform
+        return self.pipeline(V, E, X)
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
         def pullback(e: Type_E) -> Type_R:
@@ -57,3 +54,6 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
                 total += val
             return total
         return aggregator
+
+    def update(self, output):
+        return self.mlp_update(output)

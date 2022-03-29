@@ -32,7 +32,7 @@ class BaseMPNNLayer_2(nn.Module):
         return preimage
     
     def f(self, V: torch.Tensor) -> torch.Tensor:
-        return self.X[V.long()]
+        return self.X[V]
 
     """
     Integral transform primitives
@@ -58,7 +58,10 @@ class BaseMPNNLayer_2(nn.Module):
             raise NotImplementedError
         return aggregator
 
-    def pipeline(self, V: List[Type_V], E: torch.Tensor, X: torch.Tensor):
+    def update(self, output):
+        raise NotImplementedError
+
+    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor):
         # Set the span diagram and feature function f : V -> R
         self._set_preimages(V.shape[0], E)        
         self.X = X
@@ -70,4 +73,4 @@ class BaseMPNNLayer_2(nn.Module):
         aggregator = self.define_aggregator(pushforward) # V -> R
 
         # Apply the pipeline to each node in the graph
-        return aggregator(V)
+        return self.update(aggregator(V))

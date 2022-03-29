@@ -22,7 +22,7 @@ class BaseMPNNLayer_3(nn.Module):
     """
     
     def f(self, V: torch.Tensor) -> torch.Tensor:
-        return self.X[V.long()]
+        return self.X[V]
 
     """
     Primitives
@@ -48,7 +48,10 @@ class BaseMPNNLayer_3(nn.Module):
             raise NotImplementedError
         return aggregator
 
-    def pipeline(self, V: List[Type_V], E: torch.Tensor, X: torch.Tensor):
+    def update(self, output):
+        raise NotImplementedError
+
+    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor):
         # Set the span diagram and feature function f : V -> R
         self.X = X
 
@@ -59,4 +62,4 @@ class BaseMPNNLayer_3(nn.Module):
         aggregator = self.define_aggregator(pushforward) # V -> R
 
         # Apply the pipeline to each node in the graph
-        return aggregator(V,E)
+        return self.update(aggregator(V,E))

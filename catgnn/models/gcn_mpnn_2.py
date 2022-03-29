@@ -18,11 +18,8 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
         self.v_counter = 0
 
-        # Do pipeline
-        out = self.pipeline(V, E, X)
-
-        # Do update (non-linearity)
-        return self.mlp_update(out)
+        # Do integral transform
+        return self.pipeline(V, E, X)
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
         def pullback(E: torch.Tensor) -> torch.Tensor:
@@ -61,3 +58,6 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
             return total.reshape(V.shape[0],-1)
         
         return aggregator
+
+    def update(self, output):
+        return self.mlp_update(output)

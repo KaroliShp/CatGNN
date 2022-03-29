@@ -2,12 +2,13 @@ from torch_geometric.datasets import Planetoid
 import torch
 from catgnn.datasets.dataset import Dataset
 
-class CoraDataset(Dataset):
+class PlanetoidDataset(Dataset):
 
-    def __init__(self):
-        super(CoraDataset, self).__init__()
+    def __init__(self, name):
+        super(PlanetoidDataset, self).__init__()
 
-        cora_pyg = Planetoid(root='/tmp/Cora', name='Cora', split="full")
+        assert name in ["Cora", "CiteSeer", "PubMed"]
+        cora_pyg = Planetoid(root=f'/tmp/{name}', name=name, split="full")
         self.cora_data = cora_pyg[0]
 
     def train_val_test_split(self):
