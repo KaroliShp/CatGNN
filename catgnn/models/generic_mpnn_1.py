@@ -28,7 +28,6 @@ class GenericMPNNLayer(BaseMPNNLayer_1):
     def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
         def pushforward(v: Type_V) -> Type_NR:
             pE = self.t_1(v)
-            print(f'pE: {pE}')
 
             # Now we need to apply edge_messages function for each element of pE
             bag_of_messages = []
@@ -47,19 +46,5 @@ class GenericMPNNLayer(BaseMPNNLayer_1):
         
         return aggregator
 
-
-if __name__ == '__main__':
-    # Example graph above
-    # V is a set of nodes - usual representation
-    V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
-
-    # E is a set of edges - usual sparse representation in PyG
-    E = torch.tensor([(0,1), (1,0),
-                      (1,2), (2,1), 
-                      (2,3), (3,2) ], dtype=torch.int64).T
-
-    # Feature matrix - usual representation
-    X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
-
-    example_layer = GenericMPNNLayer()
-    print(example_layer(V, E, X))
+    def update(self, output):
+        return output

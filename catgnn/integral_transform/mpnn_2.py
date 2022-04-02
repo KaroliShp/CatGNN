@@ -43,6 +43,16 @@ class BaseMPNNLayer_2(nn.Module):
             raise NotImplementedError
         return pullback
 
+    def define_kernel_factor_1(self, pullback):
+        def kernel_factor_1(E, E_star):
+            raise NotImplementedError
+        return kernel_factor_1
+
+    def define_kernel_factor_2(self, kernel_factor_1):
+        def kernel_factor_2(E):
+            raise NotImplementedError
+        return kernel_factor_2
+
     def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
         def kernel_transformation(E: torch.Tensor) -> torch.Tensor:
             raise NotImplementedError
@@ -61,14 +71,18 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, output):
         raise NotImplementedError
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor):
+    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Set the span diagram and feature function f : V -> R
         self._set_preimages(V.shape[0], E)        
         self.X = X
 
         # Prepare pipeline
         pullback = self.define_pullback(self.f) # E -> R
-        kernel_transformation = self.define_kernel(pullback) # E -> R
+        if kernel_factor:
+            product_arrow = self.define_kernel_factor_1(pullback) # (E -> R) x (E -> R)
+            kernel_transformation = self.define_kernel_factor_2(product_arrow) # E -> R
+        else:
+            kernel_transformation = self.define_kernel(pullback) # E -> R
         pushforward = self.define_pushforward(kernel_transformation) # V -> N[R]
         aggregator = self.define_aggregator(pushforward) # V -> R
 

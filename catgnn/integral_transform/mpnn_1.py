@@ -48,6 +48,45 @@ class BaseMPNNLayer_1(nn.Module):
             raise NotImplementedError
         return pullback
 
+    def define_kernel_factor_1(self, pullback):
+        """
+        Inputs:
+        E -> R
+
+        Outputs:
+        (E,E) -> (R,R)
+        """
+        def kernel_factor_1(e, e_star):
+            """
+            Product arrow
+            Inputs:
+            (E, E)
+            
+            Outputs:
+            (R, R)
+            """
+            raise NotImplementedError
+        return kernel_factor_1
+
+    def define_kernel_factor_2(self, kernel_factor_1):
+        """
+        Inputs:
+        (E,E) -> (R,R)
+
+        Outputs:
+        E -> R
+        """
+        def kernel_factor_2(e):
+            """
+            Inputs:
+            E
+            
+            Outputs:
+            R
+            """
+            raise NotImplementedError
+        return kernel_factor_2
+
     def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
         def kernel_transformation(e: Type_E) -> Type_R:
             raise NotImplementedError
@@ -66,7 +105,7 @@ class BaseMPNNLayer_1(nn.Module):
     def update(self, output):
         raise NotImplementedError
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor):
+    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Prepare edge indices for span diagram and the feature function f : V -> R
         self.E_indexed = self._add_edge_indices(E)
         self._set_preimages(V)
@@ -74,7 +113,11 @@ class BaseMPNNLayer_1(nn.Module):
 
         # Prepare pipeline
         pullback = self.define_pullback(self.f) # E -> R
-        kernel_transformation = self.define_kernel(pullback) # E -> R
+        if kernel_factor:
+            product_arrow = self.define_kernel_factor_1(pullback) # (E -> R) x (E -> R)
+            kernel_transformation = self.define_kernel_factor_2(product_arrow) # E -> R
+        else:
+            kernel_transformation = self.define_kernel(pullback) # E -> R
         pushforward = self.define_pushforward(kernel_transformation) # V -> N[R]
         aggregator = self.define_aggregator(pushforward) # V -> R
 
