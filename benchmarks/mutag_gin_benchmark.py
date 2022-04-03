@@ -1,4 +1,4 @@
-from benchmarks.train_supervised import train_eval_loop
+from benchmarks.utils.train_supervised import train_eval_loop
 from catgnn.layers.gin_conv.gin_mpnn_1 import GINLayer_MPNN_1
 from catgnn.layers.gin_conv.gin_mpnn_2 import GINLayer_MPNN_2
 from catgnn.layers.gin_conv.gin_mpnn_3 import GINLayer_MPNN_3
