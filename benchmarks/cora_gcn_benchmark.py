@@ -1,4 +1,4 @@
-from benchmarks.train_transductive import train_eval_loop
+from benchmarks.utils.train_transductive import train_eval_loop
 from catgnn.layers.gcn_conv.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
 from catgnn.layers.gcn_conv.gcn_mpnn_2 import GCNLayer_MPNN_2
 from catgnn.layers.gcn_conv.gcn_mpnn_3 import GCNLayer_MPNN_3
