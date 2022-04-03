@@ -85,7 +85,7 @@ class BaseMPNNLayer_1(nn.Module):
             raise NotImplementedError
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         raise NotImplementedError
 
     def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
@@ -116,4 +116,4 @@ class BaseMPNNLayer_1(nn.Module):
         for v in V:
             updated_features = torch.hstack((updated_features,aggregator(v)))
 
-        return self.update(updated_features.view(X.shape[0],-1))
+        return self.update(X, updated_features.view(X.shape[0],-1))

@@ -1,7 +1,7 @@
-from benchmarks.train import train_eval_loop
-from catgnn.models.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
-from catgnn.models.gcn_mpnn_2 import GCNLayer_MPNN_2
-from catgnn.models.gcn_mpnn_3 import GCNLayer_MPNN_3
+from benchmarks.train_transductive import train_eval_loop
+from catgnn.layers.gcn_conv.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
+from catgnn.layers.gcn_conv.gcn_mpnn_2 import GCNLayer_MPNN_2
+from catgnn.layers.gcn_conv.gcn_mpnn_3 import GCNLayer_MPNN_3
 import torch
 from torch import nn
 from catgnn.datasets.planetoid import PlanetoidDataset

@@ -55,7 +55,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
             return total
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return self.mlp_update(output)
 
 
@@ -115,5 +115,5 @@ class GCNLayer_Factored_MPNN_1(BaseMPNNLayer_1):
             return total
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return self.mlp_update(output)

@@ -58,7 +58,7 @@ class BaseMPNNLayer_3(nn.Module):
             raise NotImplementedError
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         raise NotImplementedError
 
     def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
@@ -76,4 +76,4 @@ class BaseMPNNLayer_3(nn.Module):
         aggregator = self.define_aggregator(pushforward) # V -> R
 
         # Apply the pipeline to each node in the graph
-        return self.update(aggregator(V,E))
+        return self.update(X, aggregator(V,E))

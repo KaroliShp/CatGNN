@@ -59,5 +59,5 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return self.mlp_update(output)

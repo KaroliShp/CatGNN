@@ -1,5 +1,5 @@
 import pytest
-from catgnn.models.generic_mpnn_1 import GenericMPNNLayer, GenericFactoredMPNNLayer
+from catgnn.layers.generic_mpnn_1 import GenericMPNNLayer, GenericFactoredMPNNLayer
 from catgnn.typing import *
 import torch
 

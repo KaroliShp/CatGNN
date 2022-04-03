@@ -49,5 +49,5 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
             return aggregated[V]
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return self.mlp_update(output)

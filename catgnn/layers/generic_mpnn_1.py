@@ -46,7 +46,7 @@ class GenericMPNNLayer(BaseMPNNLayer_1):
         
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return output
 
 
@@ -127,7 +127,7 @@ class GenericFactoredMPNNLayer(BaseMPNNLayer_1):
         
         return aggregator
 
-    def update(self, output):
+    def update(self, X, output):
         return output
 
 
