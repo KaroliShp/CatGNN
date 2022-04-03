@@ -12,8 +12,8 @@ class BaseMPNNLayer_1(nn.Module):
     Directed graph span construction
     """
 
-    def _add_edge_indices(self, E: torch.Tensor) -> torch.Tensor:
-        return torch.cat((E, torch.arange(0, E.shape[1]).view(1,-1)))
+    def _add_edge_indices(self, E: torch.Tensor):
+        self.E_indexed = torch.cat((E, torch.arange(0, E.shape[1]).view(1,-1)))
 
     def s(self, e: torch.Tensor) -> torch.Tensor:
         return self.E_indexed[1][e[2]]
@@ -35,6 +35,17 @@ class BaseMPNNLayer_1(nn.Module):
     def t_1(self, v: torch.Tensor) -> List[torch.Tensor]:
         return self._preimages[v]
 
+    def _add_opposite_edges(self):
+        self.E_indexed = torch.cat((self.E_indexed, (torch.zeros(self.E_indexed.shape[1], dtype=torch.int64).view(1,-1))-1))
+
+        for i in range(self.E_indexed.shape[1]):
+            for j in range(self.E_indexed.shape[1]):
+                if self.s(self.E_indexed[:,i]) == self.t(self.E_indexed[:,j]) and self.s(self.E_indexed[:,j]) == self.t(self.E_indexed[:,i]):
+                    self.E_indexed[3][i] = self.E_indexed[:,j][2]
+
+    def get_opposite_edge(self, e):
+        return self.E_indexed[:,e[3]]
+
     def f(self, v: torch.Tensor) -> torch.Tensor:
         return self.X[v]
 
@@ -49,41 +60,12 @@ class BaseMPNNLayer_1(nn.Module):
         return pullback
 
     def define_kernel_factor_1(self, pullback):
-        """
-        Inputs:
-        E -> R
-
-        Outputs:
-        (E,E) -> (R,R)
-        """
         def kernel_factor_1(e, e_star):
-            """
-            Product arrow
-            Inputs:
-            (E, E)
-            
-            Outputs:
-            (R, R)
-            """
             raise NotImplementedError
         return kernel_factor_1
 
     def define_kernel_factor_2(self, kernel_factor_1):
-        """
-        Inputs:
-        (E,E) -> (R,R)
-
-        Outputs:
-        E -> R
-        """
         def kernel_factor_2(e):
-            """
-            Inputs:
-            E
-            
-            Outputs:
-            R
-            """
             raise NotImplementedError
         return kernel_factor_2
 
@@ -107,7 +89,12 @@ class BaseMPNNLayer_1(nn.Module):
 
     def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Prepare edge indices for span diagram and the feature function f : V -> R
-        self.E_indexed = self._add_edge_indices(E)
+        self._add_edge_indices(E)
+
+        # If kernel transformation is factorized, need to find opposite edges
+        if kernel_factor:
+            self._add_opposite_edges()
+
         self._set_preimages(V)
         self.X = X
 
