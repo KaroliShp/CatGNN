@@ -4,13 +4,13 @@ import numpy as np
 import torch
 
 
-class GenericMPNNLayer(BaseMPNNLayer_1):
+class GenericMPNNLayer_1(BaseMPNNLayer_1):
 
     def __init__(self):
         super().__init__()
     
-    def forward(self, V: List[Type_V], E: List[Type_E], X: Type_R) -> Type_R:
-        out = self.pipeline(V, E, X)
+    def forward(self, V, E, X):
+        out = self.pipeline_backwards(V, E, X)
         return out
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
@@ -50,13 +50,13 @@ class GenericMPNNLayer(BaseMPNNLayer_1):
         return output
 
 
-class GenericFactoredMPNNLayer(BaseMPNNLayer_1):
+class GenericFactoredMPNNLayer_1(BaseMPNNLayer_1):
 
     def __init__(self):
         super().__init__()
     
     def forward(self, V: List[Type_V], E: List[Type_E], X: Type_R) -> Type_R:
-        out = self.pipeline(V, E, X, kernel_factor=True)
+        out = self.pipeline_backwards(V, E, X, kernel_factor=True)
         return out
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:

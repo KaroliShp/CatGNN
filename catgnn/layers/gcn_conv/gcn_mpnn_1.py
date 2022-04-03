@@ -23,7 +23,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
         self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         # Do integral transform
-        return self.pipeline(V, E, X)
+        return self.pipeline_backwards(V, E, X)
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
         def pullback(e: Type_E) -> Type_R:
@@ -78,7 +78,7 @@ class GCNLayer_Factored_MPNN_1(BaseMPNNLayer_1):
         self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         # Do integral transform
-        return self.pipeline(V, E, X, kernel_factor=True)
+        return self.pipeline_backwards(V, E, X, kernel_factor=True)
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
         def pullback(e: Type_E) -> Type_R:

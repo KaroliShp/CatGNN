@@ -71,7 +71,7 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
+    def pipeline_backwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Set the span diagram and feature function f : V -> R
         self._set_preimages(V.shape[0], E)        
         self.X = X

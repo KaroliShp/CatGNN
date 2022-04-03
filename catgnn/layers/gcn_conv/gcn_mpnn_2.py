@@ -19,7 +19,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         self.v_counter = 0
 
         # Do integral transform
-        return self.pipeline(V, E, X)
+        return self.pipeline_backwards(V, E, X)
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
         def pullback(E: torch.Tensor) -> torch.Tensor:

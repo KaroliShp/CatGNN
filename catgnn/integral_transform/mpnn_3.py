@@ -16,16 +16,12 @@ class BaseMPNNLayer_3(nn.Module):
 
     def t(self, E: torch.Tensor) -> torch.Tensor:
         return E[0]
-
-    """
-    Other building blocks for implementing primitive operations
-    """
     
     def f(self, V: torch.Tensor) -> torch.Tensor:
         return self.X[V]
 
     """
-    Primitives
+    Integral transform primitives (backwards)
     """
 
     def define_pullback(self, f):
@@ -61,7 +57,7 @@ class BaseMPNNLayer_3(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
+    def pipeline_backwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Set the span diagram and feature function f : V -> R
         self.X = X
 
@@ -77,3 +73,42 @@ class BaseMPNNLayer_3(nn.Module):
 
         # Apply the pipeline to each node in the graph
         return self.update(X, aggregator(V,E))
+
+    """
+    Integral transform primitives (forwards)
+    """
+
+    def pullback(self, E, f):
+        raise NotImplementedError
+
+    def kernel_factor_1(self, E, E_star, pulledback_features):
+        raise NotImplementedError
+
+    def kernel_factor_2(self, E, kernel_factor_1):
+        raise NotImplementedError
+
+    def kernel_transformation(self, E, pulledback_features):
+        raise NotImplementedError
+
+    def pushforward(self, V, E, edge_messages):
+        raise NotImplementedError
+    
+    def aggregator(self, V, bags_of_values):
+        raise NotImplementedError
+
+    def update(self, X, output):
+        raise NotImplementedError
+
+    def pipeline_forwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):    
+        self.X = X
+
+        # Execute pipeline
+        pulledback_features = self.pullback(E, self.f)
+        #print(f'pulledback features: {pulledback_features}\n')
+        edge_messages = self.kernel_transformation(E, pulledback_features)
+        #print(f'edge messages: {edge_messages}\n')
+        bags_of_values = self.pushforward(V, E, edge_messages)
+        #print(f'bags of values: {bags_of_values}\n')
+        output = self.aggregator(V, bags_of_values)
+        #print(f'output: {output}')
+        return self.update(X, output)

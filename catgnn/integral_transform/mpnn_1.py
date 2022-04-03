@@ -52,7 +52,7 @@ class BaseMPNNLayer_1(nn.Module):
 
 
     """
-    Integral transform primitives
+    Integral transform primitives (backwards)
     """
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
@@ -88,15 +88,13 @@ class BaseMPNNLayer_1(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def pipeline(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
+    def pipeline_backwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Prepare edge indices for span diagram and the feature function f : V -> R
         self._add_edge_indices(E)
 
         # If kernel transformation is factorized, need to find opposite edges
         if kernel_factor:
-            print('Adding opposite edges')
             self._add_opposite_edges()
-            print('Done')
 
         self._set_preimages(V)
         self.X = X
@@ -117,3 +115,32 @@ class BaseMPNNLayer_1(nn.Module):
             updated_features = torch.hstack((updated_features,aggregator(v)))
 
         return self.update(X, updated_features.view(X.shape[0],-1))
+
+    
+    """
+    Integral transform primitives (forwards)
+    """
+
+    def pullback(self, e, f):
+        raise NotImplementedError
+
+    def kernel_factor_1(self, e, e_star, pulledback_features):
+        raise NotImplementedError
+
+    def kernel_factor_2(self, e, kernel_factor_1):
+        raise NotImplementedError
+
+    def kernel_transformation(self, e, pulledback_features):
+        raise NotImplementedError
+
+    def pushforward(self, v, edge_messages):
+        raise NotImplementedError
+    
+    def aggregator(self, v, bags_of_values):
+        raise NotImplementedError
+
+    def update(self, X, output):
+        raise NotImplementedError
+
+    def pipeline_forwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
+        raise NotImplementedError

@@ -1,5 +1,5 @@
 import pytest
-from catgnn.layers.generic_mpnn_1 import GenericMPNNLayer, GenericFactoredMPNNLayer
+from catgnn.layers.generic.generic_mpnn_1 import GenericMPNNLayer_1, GenericFactoredMPNNLayer_1
 from catgnn.typing import *
 import torch
 
@@ -13,7 +13,7 @@ import torch
         torch.tensor([[0,0], [0,1], [1,0], [1,1]])
     )
 ])
-def test_generic_mpnn_1_forward(V, E, X):
+def test_generic_mpnn_1_backwards(V, E, X):
     """
     Technically this is an integration test (since it tests the whole pipeline)
     """
@@ -22,7 +22,7 @@ def test_generic_mpnn_1_forward(V, E, X):
                                     [1., 2.], 
                                     [1., 0.]])
 
-    generic_layer = GenericMPNNLayer()
+    generic_layer = GenericMPNNLayer_1()
     output = generic_layer(V, E, X)
 
     assert torch.equal(output, expected_output)
@@ -37,7 +37,7 @@ def test_generic_mpnn_1_forward(V, E, X):
         torch.tensor([[0,0], [0,1], [1,0], [1,1]])
     )
 ])
-def test_generic_factored_mpnn_1_forward(V, E, X):
+def test_generic_factored_mpnn_1_backwards(V, E, X):
     """
     Technically this is an integration test (since it tests the whole pipeline)
     """
@@ -46,7 +46,7 @@ def test_generic_factored_mpnn_1_forward(V, E, X):
                                     [1., 2.], 
                                     [1., 0.]])
 
-    generic_factored_layer = GenericFactoredMPNNLayer()
+    generic_factored_layer = GenericFactoredMPNNLayer_1()
     output = generic_factored_layer(V, E, X)
 
     assert torch.equal(output, expected_output)

@@ -15,7 +15,7 @@ class GINLayer_MPNN_3(BaseMPNNLayer_3):
     
     def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
         # Do integral transform
-        return self.pipeline(V, E, X)
+        return self.pipeline_backwards(V, E, X)
 
     def define_pullback(self, f):
         def pullback(E):
