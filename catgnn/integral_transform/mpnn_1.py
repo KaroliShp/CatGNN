@@ -42,6 +42,7 @@ class BaseMPNNLayer_1(nn.Module):
             for j in range(self.E_indexed.shape[1]):
                 if self.s(self.E_indexed[:,i]) == self.t(self.E_indexed[:,j]) and self.s(self.E_indexed[:,j]) == self.t(self.E_indexed[:,i]):
                     self.E_indexed[3][i] = self.E_indexed[:,j][2]
+                    break
 
     def get_opposite_edge(self, e):
         return self.E_indexed[:,e[3]]
@@ -93,7 +94,9 @@ class BaseMPNNLayer_1(nn.Module):
 
         # If kernel transformation is factorized, need to find opposite edges
         if kernel_factor:
+            print('Adding opposite edges')
             self._add_opposite_edges()
+            print('Done')
 
         self._set_preimages(V)
         self.X = X

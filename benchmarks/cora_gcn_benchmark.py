@@ -1,5 +1,5 @@
 from benchmarks.train import train_eval_loop
-from catgnn.models.gcn_mpnn_1 import GCNLayer_MPNN_1
+from catgnn.models.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
 from catgnn.models.gcn_mpnn_2 import GCNLayer_MPNN_2
 from catgnn.models.gcn_mpnn_3 import GCNLayer_MPNN_3
 import torch
@@ -13,6 +13,16 @@ class CatGNN_GCN_1(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(CatGNN_GCN_1, self).__init__()
         self.gcn_layer = GCNLayer_MPNN_1(input_dim, output_dim)
+
+    def forward(self, V, E, X):
+        return self.gcn_layer(V, E, X)
+
+
+class CatGNN_Factored_GCN_1(nn.Module):
+
+    def __init__(self, input_dim, output_dim):
+        super(CatGNN_Factored_GCN_1, self).__init__()
+        self.gcn_layer = GCNLayer_Factored_MPNN_1(input_dim, output_dim)
 
     def forward(self, V, E, X):
         return self.gcn_layer(V, E, X)
@@ -74,6 +84,10 @@ def benchmark_catgnn_gcn_1():
     benchmark(CatGNN_GCN_1, sender_to_receiver=False)
 
 
+def benchmark_catgnn_factored_gcn_1():
+    benchmark(CatGNN_Factored_GCN_1, sender_to_receiver=False)
+
+
 def benchmark_catgnn_gcn_2():
     """
     Requires E to be sorted by receiver
@@ -94,6 +108,7 @@ def benchmark_pyg_gcn():
 
 if __name__ == '__main__':
     #benchmark_catgnn_gcn_1()
+    benchmark_catgnn_factored_gcn_1()
     #benchmark_catgnn_gcn_2()
-    benchmark_catgnn_gcn_3()
+    #benchmark_catgnn_gcn_3()
     #benchmark_pyg_gcn()
