@@ -5,6 +5,41 @@ import torch
 import torch_scatter
 
 
+class GenericMPNNLayer_3(BaseMPNNLayer_3):
+
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, V, E, X):
+        out = self.pipeline_backwards(V, E, X, kernel_factor=False)
+        return out
+    
+    def define_pullback(self, f):
+        def pullback(E):
+            return f(self.s(E))
+        return pullback
+
+    def define_kernel(self, pullback):
+        def kernel(E):
+            return pullback(E)
+        return kernel
+    
+    def define_pushforward(self, kernel):
+        def pushforward(V, E):
+            return kernel(E), self.t(E)
+        return pushforward
+    
+    def define_aggregator(self, pushforward):
+        def aggregator(V, E):
+            bags = pushforward(V,E)
+            aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
+            return aggregated[V]
+        return aggregator
+
+    def update(self, X, output):
+        return output
+
+
 class GenericMPNNLayer_3_Forwards(BaseMPNNLayer_3):
 
     def __init__(self):
@@ -45,5 +80,5 @@ if __name__ == '__main__':
     # Feature matrix - usual representation
     X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
 
-    example_layer = GenericMPNNLayer_3_Forwards()
+    example_layer = GenericMPNNLayer_3()
     print(example_layer(V, E, X))

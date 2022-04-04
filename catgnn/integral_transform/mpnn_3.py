@@ -50,7 +50,7 @@ class BaseMPNNLayer_3(nn.Module):
         return pushforward
     
     def define_aggregator(self, pushforward):
-        def aggregator(V):
+        def aggregator(V, E):
             raise NotImplementedError
         return aggregator
 
