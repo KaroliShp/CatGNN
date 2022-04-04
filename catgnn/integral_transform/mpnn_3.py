@@ -20,7 +20,8 @@ class BaseMPNNLayer_3(nn.Module):
     def t_1(self, V):
         # Get preimages of only those edges where the receiver is in V
         # For now, assume V is always all nodes (we cannot select the nodes)
-        return self.E, self.t(self.E)
+        selected_E = self.E.T[torch.isin(self.t(self.E), V)].T
+        return selected_E, self.t(selected_E)
     
     def f(self, V: torch.Tensor) -> torch.Tensor:
         return self.X[V]

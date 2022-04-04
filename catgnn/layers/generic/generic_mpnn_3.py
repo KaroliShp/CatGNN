@@ -37,13 +37,15 @@ class GenericMPNNLayer_3(BaseMPNNLayer_3):
             # Only those edges chosen by pullback and transformed by kernel will be returned, so again we don't need to do anything else with edges here
             E, indices = self.t_1(V)
 
+            # Problem here is that indices remain the same, while kernel may choose some E
+            # Indices here indicate which bag the edge feature belongs to
             return kernel(E), indices
         return pushforward
     
     def define_aggregator(self, pushforward):
         def aggregator(V):
-            E, indices = pushforward(V)
-            aggregated = torch_scatter.scatter_add(E.T, indices.repeat(E.T.shape[0],1)).T
+            edge_messages, indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, indices.repeat(edge_messages.T.shape[0],1)).T
             return aggregated[V]
         return aggregator
 
