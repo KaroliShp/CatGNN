@@ -35,7 +35,7 @@ class BaseMPNNLayer_2(nn.Module):
         return self.X[V]
 
     """
-    Integral transform primitives
+    Integral transform primitives (backwards)
     """
 
     def define_pullback(self, f: Type_V_R) -> Type_E_R:
@@ -63,8 +63,8 @@ class BaseMPNNLayer_2(nn.Module):
             raise NotImplementedError
         return pushforward
     
-    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
-        def aggregator(V: List[Type_V]) -> torch.Tensor:
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
             raise NotImplementedError
         return aggregator
 
