@@ -16,23 +16,34 @@ class GenericMPNNLayer_3(BaseMPNNLayer_3):
     
     def define_pullback(self, f):
         def pullback(E):
+            # Suppose you only choose some edges here and return only results for those edges
             return f(self.s(E))
         return pullback
 
     def define_kernel(self, pullback):
         def kernel(E):
+            # Pullback will choose which edges in E are worth keeping, so we only need to define kernel for those edges
+            # Like obv you don't perform transformation on edges that don't exist
             return pullback(E)
         return kernel
     
     def define_pushforward(self, kernel):
-        def pushforward(V, E):
-            return kernel(E), self.t(E)
+        def pushforward(V):
+            # Now we have V. We need to get preimages pE for each v in V
+            # Can we assume this is all V? - Probably not. At this point this basically amounts to choosing V
+            # However, we can assume we have all E, because at this point we dont choose which E to use for the GNN (this will be chosen by kernel - pullback)
+
+            # Then for each E in pE we need to call kernel, this will later choose which E will be called
+            # Only those edges chosen by pullback and transformed by kernel will be returned, so again we don't need to do anything else with edges here
+            E, indices = self.t_1(V)
+
+            return kernel(E), indices
         return pushforward
     
     def define_aggregator(self, pushforward):
-        def aggregator(V, E):
-            bags = pushforward(V,E)
-            aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
+        def aggregator(V):
+            E, indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(E.T, indices.repeat(E.T.shape[0],1)).T
             return aggregated[V]
         return aggregator
 

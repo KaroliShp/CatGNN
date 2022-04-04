@@ -16,6 +16,11 @@ class BaseMPNNLayer_3(nn.Module):
 
     def t(self, E: torch.Tensor) -> torch.Tensor:
         return E[0]
+
+    def t_1(self, V):
+        # Get preimages of only those edges where the receiver is in V
+        # For now, assume V is always all nodes (we cannot select the nodes)
+        return self.E, self.t(self.E)
     
     def f(self, V: torch.Tensor) -> torch.Tensor:
         return self.X[V]
@@ -45,12 +50,12 @@ class BaseMPNNLayer_3(nn.Module):
         return kernel
     
     def define_pushforward(self, kernel):
-        def pushforward(V, E):
+        def pushforward(V):
             raise NotImplementedError
         return pushforward
     
     def define_aggregator(self, pushforward):
-        def aggregator(V, E):
+        def aggregator(V):
             raise NotImplementedError
         return aggregator
 
@@ -60,6 +65,7 @@ class BaseMPNNLayer_3(nn.Module):
     def pipeline_backwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
         # Set the span diagram and feature function f : V -> R
         self.X = X
+        self.E = E
 
         # Prepare pipeline
         pullback = self.define_pullback(self.f) # E -> R
@@ -72,7 +78,7 @@ class BaseMPNNLayer_3(nn.Module):
         aggregator = self.define_aggregator(pushforward) # V -> R
 
         # Apply the pipeline to each node in the graph
-        return self.update(X, aggregator(V,E))
+        return self.update(X, aggregator(V))
 
     """
     Integral transform primitives (forwards)
