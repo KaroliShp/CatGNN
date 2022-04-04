@@ -132,6 +132,32 @@ class GenericFactoredMPNNLayer_1(BaseMPNNLayer_1):
 
 
 """
+class GenericMPNNLayer_1_Forwards(BaseMPNNLayer_1):
+
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, V, E, X):
+        out = self.pipeline_forwards(V, E, X)
+        return out
+
+    def pullback(self, e, f):
+        return f(self.s(e))
+
+    def kernel_transformation(self, e, pulledback_features):
+        return pulledback_features
+
+    def pushforward(self, v, edge_messages):
+        raise NotImplementedError
+    
+    def aggregator(self, v, bags_of_values):
+        raise NotImplementedError
+
+    def update(self, X, output):
+        raise NotImplementedError
+"""
+
+
 if __name__ == '__main__':
     # Example graph above
     # V is a set of nodes - usual representation
@@ -145,6 +171,5 @@ if __name__ == '__main__':
     # Feature matrix - usual representation
     X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
 
-    example_layer = GenericFactoredMPNNLayer()
+    example_layer = GenericMPNNLayer_1()
     print(example_layer(V, E, X))
-"""

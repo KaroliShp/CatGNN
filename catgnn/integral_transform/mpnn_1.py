@@ -143,4 +143,38 @@ class BaseMPNNLayer_1(nn.Module):
         raise NotImplementedError
 
     def pipeline_forwards(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor, kernel_factor=False):
+        """
+        # Prepare edge indices for span diagram and the feature function f : V -> R
+        self._add_edge_indices(E)
+        self._set_preimages(V)
+        self.X = X
+        
+        # Pullback features
+        pulledback_features = torch.Tensor()
+        for i in range(self.E_indexed.shape[1]):
+            pulledback_features = torch.cat((pulledback_features, self.pullback(self.E_indexed[:,i], self.f)))
+        pulledback_features = pulledback_features.view(-1,2)
+        print(f'Pulledback features: {pulledback_features}')
+
+        # Calculate edge messages
+        edge_messages = []
+        for i in range(self.E_indexed.shape[1]):
+            edge_messages.append(self.kernel_transformation(self.E_indexed[:,i], pulledback_features))
+        print(f'Edge messages: {edge_messages}')
+
+        # Pushforward messages
+        pushforwarded_messages = []
+        for v in V:
+            pushforwarded_messages.append(self.pushforward(v, edge_messages))
+        print(f'Pushforwarded messages: {pushforwarded_messages}')
+
+        # Aggregate features
+        updated_features = torch.Tensor()
+        for v in V:
+            updated_features = torch.hstack((updated_features,self.aggregator(v, pushforwarded_messages)))
+        print(f'Updated features: {updated_features}')
+
+        # Update
+        return self.update(X, updated_features)
+        """
         raise NotImplementedError
