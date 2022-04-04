@@ -106,13 +106,13 @@ def benchmark_catgnn_gcn_2():
 
 
 def benchmark_catgnn_gcn_3():
-    """
-    Pushforward
-    """
     benchmark(CatGNN_GCN_3, sender_to_receiver=False)
 
 
 def benchmark_catgnn_gcn_3_forwards():
+    """
+    Pushforward
+    """
     benchmark(CatGNN_GCN_3_Forwards, sender_to_receiver=False)
 
 
@@ -125,5 +125,5 @@ if __name__ == '__main__':
     #benchmark_catgnn_factored_gcn_1()
     #benchmark_catgnn_gcn_2()
     #benchmark_catgnn_gcn_3()
-    benchmark_catgnn_gcn_3_forwards()
-    #benchmark_pyg_gcn()
+    #benchmark_catgnn_gcn_3_forwards()
+    benchmark_pyg_gcn()

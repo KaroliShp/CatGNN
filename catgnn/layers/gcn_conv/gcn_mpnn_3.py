@@ -37,14 +37,15 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
         return kernel
 
     def define_pushforward(self, kernel):
-        def pushforward(V, E):
+        def pushforward(V):
             # Need to call preimage here
-            return kernel(E), self.t(E)
+            E, indices = self.t_1(V)
+            return kernel(E), indices
         return pushforward
 
     def define_aggregator(self, pushforward):
-        def aggregator(V, E):
-            bags = pushforward(V,E)
+        def aggregator(V):
+            bags = pushforward(V)
             aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
             return aggregated[V]
         return aggregator
