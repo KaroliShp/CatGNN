@@ -97,7 +97,7 @@ class BaseMPNNLayer_3(nn.Module):
     def kernel_transformation(self, E, pulledback_features):
         raise NotImplementedError
 
-    def pushforward(self, V, E, edge_messages):
+    def pushforward(self, V, edge_messages):
         raise NotImplementedError
     
     def aggregator(self, V, bags_of_values):
@@ -110,12 +110,15 @@ class BaseMPNNLayer_3(nn.Module):
         self.X = X
 
         # Execute pipeline
+        # There is a problem here: suppose pullback only chooses some of the edges, then
+        # the same old E is sent to kernel transformation (before choosing E)
+        # Need to redo it
         pulledback_features = self.pullback(E, self.f)
-        #print(f'pulledback features: {pulledback_features}\n')
+        print(f'pulledback features: {pulledback_features}\n')
         edge_messages = self.kernel_transformation(E, pulledback_features)
-        #print(f'edge messages: {edge_messages}\n')
-        bags_of_values = self.pushforward(V, E, edge_messages)
-        #print(f'bags of values: {bags_of_values}\n')
+        print(f'edge messages: {edge_messages}\n')
+        bags_of_values = self.pushforward(V, edge_messages)
+        print(f'bags of values: {bags_of_values}\n')
         output = self.aggregator(V, bags_of_values)
-        #print(f'output: {output}')
+        print(f'output: {output}')
         return self.update(X, output)

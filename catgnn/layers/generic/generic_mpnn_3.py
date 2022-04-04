@@ -66,7 +66,7 @@ class GenericMPNNLayer_3_Forwards(BaseMPNNLayer_3):
         return f(self.s(E))
 
     def kernel_transformation(self, E, pulledback_features):
-        return pulledback_features
+        return pulledback_features # Only pullback those that are in E?
 
     def pushforward(self, V, E, edge_messages):
         return edge_messages, self.t(E)
