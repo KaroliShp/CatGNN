@@ -2,6 +2,7 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 from catgnn.typing import *
 import torch
 from torch import nn
+import torch_scatter
 
 
 class GCNLayer_MPNN_2(BaseMPNNLayer_2):
@@ -12,52 +13,137 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
         self.mlp_update = nn.LeakyReLU() # \phi
     
-    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:        
-        # 3. Compute normalization and provide as edge features
-        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype))
+    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
+        # Add self-loops
+        E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
-        self.v_counter = 0
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         # Do integral transform
         return self.pipeline_backwards(V, E, X)
 
-    def define_pullback(self, f: Type_V_R) -> Type_E_R:
-        def pullback(E: torch.Tensor) -> torch.Tensor:
+    def define_pullback(self, f):
+        def pullback(E):
             return f(self.s(E))
-        
         return pullback
-    
-    def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
-        def kernel_transformation(E: torch.Tensor) -> torch.Tensor:
-            # 2. Linearly transform node feature matrix and 4. Normalize node features
-            E = torch.cat((torch.tensor([[self.v_counter], [self.v_counter]], dtype=E.dtype), E), dim=1)
-            norm = torch.sqrt(1/( (self.degrees[self.v_counter].repeat(E.shape[1], 1)+1) * (self.degrees[E[1]].view(-1,1)+1) ))
-            self.v_counter += 1
-            return self.mlp_msg(pullback(E)) * norm
-        
-        return kernel_transformation
-    
-    def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
-        def pushforward(V: torch.Tensor) -> torch.Tensor:
-            pE = self.t_1(V)
-            bag = []
-            for e in pE:
-                bag.append(kernel_transformation(e))
-            return bag
-        
+
+    def define_kernel(self, pullback):
+        def kernel(E):
+            return self.mlp_msg(pullback(E)) * self.norm.view(-1, 1)
+        return kernel
+
+    def define_pushforward(self, kernel):
+        def pushforward(V):
+            # Need to call preimage here
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
         return pushforward
 
-    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
-        def aggregator(V: torch.Tensor) -> torch.Tensor:
-            bag = pushforward(V)
-            total = torch.Tensor()
-            for b in bag:
-                total = torch.hstack((total, torch.sum(b, dim=0)))
-            #print(total.shape)
-            #print(V.shape)
-            return total.reshape(V.shape[0],-1)
-        
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
+            return aggregated[V]
         return aggregator
+
+    def update(self, X, output):
+        return self.mlp_update(output)
+
+
+class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
+
+    def __init__(self, in_dim: int, out_dim: int):
+        super().__init__()
+
+        self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
+        self.mlp_update = nn.LeakyReLU() # \phi
+    
+    def forward(self, V, E, X):
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
+        # Add self-loops
+        E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
+
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
+
+        # Do integral transform
+        return self.pipeline_backwards(V, E, X, kernel_factor=True)
+    
+    def define_pullback(self, f):
+        def pullback(E):
+            return f(self.s(E))
+        return pullback
+
+    def define_kernel_factor_1(self, pullback):
+        def kernel_factor_1(E):
+            E_star = self.get_opposite_edges(E)
+            return pullback(E), pullback(E_star)
+        return kernel_factor_1
+
+    def define_kernel_factor_2(self, kernel_factor_1):
+        def kernel_factor_2(E):
+            r_sender, r_receiver = kernel_factor_1(E)
+            return self.mlp_msg(r_sender) * self.norm.view(-1, 1)
+        return kernel_factor_2
+    
+    def define_pushforward(self, kernel):
+        def pushforward(V):
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
+        return pushforward
+    
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
+            return aggregated[V]
+        return aggregator
+
+    def update(self, X, output):
+        return self.mlp_update(output)
+
+
+class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
+
+    def __init__(self, in_dim: int, out_dim: int):
+        super().__init__()
+
+        self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
+        self.mlp_update = nn.LeakyReLU() # \phi
+    
+    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
+        # Add self-loops
+        E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
+
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
+
+        # Do integral transform
+        return self.pipeline_forwards(V, E, X)
+
+    def pullback(self, E, f):
+        return f(self.s(E)), E
+
+    def kernel_transformation(self, E, pulledback_features):
+        return self.mlp_msg(pulledback_features) * self.norm.view(-1, 1)
+
+    def pushforward(self, V, edge_messages):
+        E, bag_indices = self.t_1(V)
+        return edge_messages, bag_indices
+    
+    def aggregator(self, V, edge_messages, bag_indices):
+        aggregated = torch_scatter.scatter_add(edge_messages.T, 
+                                               bag_indices.repeat(edge_messages.T.shape[0],1)).T
+        return aggregated[V]
 
     def update(self, X, output):
         return self.mlp_update(output)

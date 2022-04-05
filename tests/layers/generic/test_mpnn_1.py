@@ -3,8 +3,6 @@ from catgnn.layers.generic.generic_mpnn_1 import GenericMPNNLayer_1, GenericFact
 from catgnn.typing import *
 import torch
 
-from tests.layers.generic.test_mpnn_3 import TEST_GRAPHS
-
 
 TEST_GRAPHS = [
     (

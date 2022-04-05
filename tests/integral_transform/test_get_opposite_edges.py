@@ -1,9 +1,9 @@
 import pytest
-from catgnn.integral_transform.mpnn_3 import BaseMPNNLayer_3
+from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 import torch
 
 """
-MPNN_3
+MPNN_2
 """
 
 @pytest.mark.parametrize('E,expected_E', [
@@ -36,11 +36,11 @@ MPNN_3
                       [-1, -1, -1]], dtype=torch.int64)
     ),
 ])
-def test_inverse_t_mpnn_3_masked(E, expected_E):
+def test_inverse_t_mpnn_2_masked(E, expected_E):
     """
     Test functionality of finding opposite edges for E (with masking)
     """
-    base_layer = BaseMPNNLayer_3()
+    base_layer = BaseMPNNLayer_2()
     output_E = base_layer.get_opposite_edges(E, masking_required=True)
 
     assert torch.equal(output_E, expected_E)
@@ -76,11 +76,11 @@ def test_inverse_t_mpnn_3_masked(E, expected_E):
                       [0, 1, 2]], dtype=torch.int64)
     ),
 ])
-def test_inverse_t_mpnn_3_unmasked(E, expected_E):
+def test_inverse_t_mpnn_2_unmasked(E, expected_E):
     """
     Test functionality of finding opposite edges for E (unmasked)
     """
-    base_layer = BaseMPNNLayer_3()
+    base_layer = BaseMPNNLayer_2()
     output_E = base_layer.get_opposite_edges(E, masking_required=False)
 
     assert torch.equal(output_E, expected_E)

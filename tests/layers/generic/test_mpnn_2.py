@@ -1,5 +1,5 @@
 import pytest
-from catgnn.layers.generic.generic_mpnn_3 import GenericMPNNLayer_3, GenericFactoredMPNNLayer_3, GenericMPNNLayer_3_Forwards
+from catgnn.layers.generic.generic_mpnn_2 import GenericMPNNLayer_2, GenericFactoredMPNNLayer_2, GenericMPNNLayer_2_Forwards
 from catgnn.typing import *
 import torch
 
@@ -48,33 +48,33 @@ TEST_GRAPHS_FACTORED = [
 
 
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
-def test_generic_mpnn_3(V, E, X, expected_output):
+def test_generic_mpnn_2(V, E, X, expected_output):
     """
     Technically this is an integration test (since it tests the whole pipeline)
     """
-    generic_layer = GenericMPNNLayer_3()
+    generic_layer = GenericMPNNLayer_2()
     output = generic_layer(V, E, X)
 
     assert torch.equal(output, expected_output)
 
 
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS_FACTORED)
-def test_generic_factored_mpnn_3(V, E, X, expected_output):
+def test_generic_factored_mpnn_2(V, E, X, expected_output):
     """
     Technically this is an integration test (since it tests the whole pipeline)
     """
-    generic_layer = GenericFactoredMPNNLayer_3()
+    generic_layer = GenericFactoredMPNNLayer_2()
     output = generic_layer(V, E, X)
 
     assert torch.equal(output, expected_output)
 
 
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
-def test_generic_mpnn_3_forwards(V, E, X, expected_output):
+def test_generic_mpnn_2_forwards(V, E, X, expected_output):
     """
     Technically this is an integration test (since it tests the whole pipeline)
     """
-    generic_layer = GenericMPNNLayer_3_Forwards()
+    generic_layer = GenericMPNNLayer_2_Forwards()
     output = generic_layer(V, E, X)
 
     assert torch.equal(output, expected_output)

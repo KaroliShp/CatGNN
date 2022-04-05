@@ -1,10 +1,10 @@
 import pytest
-from catgnn.integral_transform.mpnn_3 import BaseMPNNLayer_3
+from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 import torch
 
 
 """
-MPNN_3
+MPNN_2
 """
 
 
@@ -34,11 +34,11 @@ MPNN_3
         torch.tensor([0, 3], dtype=torch.int64),
     ),
 ])
-def test_inverse_t_mpnn_3(V, E, expected_E, expected_indices):
+def test_inverse_t_mpnn_2(V, E, expected_E, expected_indices):
     """
     Test functionality of finding preimages of given V
     """
-    base_layer = BaseMPNNLayer_3()
+    base_layer = BaseMPNNLayer_2()
     base_layer.E = E
     output_E, output_indices = base_layer.t_1(V)
 

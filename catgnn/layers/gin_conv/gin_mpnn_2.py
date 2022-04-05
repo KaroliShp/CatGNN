@@ -2,6 +2,7 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 from catgnn.typing import *
 import torch
 from torch import nn
+import torch_scatter
 
 
 class GINLayer_MPNN_2(BaseMPNNLayer_2):
@@ -16,34 +17,27 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         # Do integral transform
         return self.pipeline_backwards(V, E, X)
 
-    def define_pullback(self, f: Type_V_R) -> Type_E_R:
-        def pullback(E: torch.Tensor) -> torch.Tensor:
+    def define_pullback(self, f):
+        def pullback(E):
             return f(self.s(E))
         return pullback
-    
-    def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
-        def kernel_transformation(E: torch.Tensor) -> torch.Tensor:
+
+    def define_kernel(self, pullback):
+        def kernel(E):
             return pullback(E)
-        return kernel_transformation
-    
-    def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
-        def pushforward(V: torch.Tensor) -> torch.Tensor:
-            pE = self.t_1(V)
-            bag = []
-            for e in pE:
-                bag.append(kernel_transformation(e))
-            return bag
-        
+        return kernel
+
+    def define_pushforward(self, kernel):
+        def pushforward(V, E):
+            # Need to call preimage here
+            return kernel(E), self.t(E)
         return pushforward
 
-    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
-        def aggregator(V: torch.Tensor) -> torch.Tensor:
-            bag = pushforward(V)
-            total = torch.Tensor()
-            for b in bag:
-                total = torch.hstack((total, torch.sum(b, dim=0)))
-            return total.reshape(V.shape[0],-1)
-        
+    def define_aggregator(self, pushforward):
+        def aggregator(V, E):
+            bags = pushforward(V,E)
+            aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
+            return aggregated[V]
         return aggregator
 
     def update(self, X, output):
