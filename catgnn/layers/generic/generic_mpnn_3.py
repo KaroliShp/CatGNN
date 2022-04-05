@@ -84,7 +84,8 @@ class GenericFactoredMPNNLayer_3(BaseMPNNLayer_3):
         def kernel_factor_2(E):
             r_sender, r_receiver = kernel_factor_1(E)
             # Ignore receiver features for now
-            return r_sender
+            # Maybe add sum of features?
+            return r_sender + r_receiver
         return kernel_factor_2
     
     def define_pushforward(self, kernel):
@@ -170,13 +171,13 @@ if __name__ == '__main__':
     V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
 
     # E is a set of edges - usual sparse representation in PyG
-    """
     E = torch.tensor([(0,1), (1,0),
                       (1,2), (2,1), 
                       (2,3), (3,2) ], dtype=torch.int64).T
     """
     E = torch.tensor([[0, 1, 1, 2, 2, 3],
                       [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
+    """
 
     # Feature matrix - usual representation
     X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])

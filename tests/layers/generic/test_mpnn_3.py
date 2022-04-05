@@ -13,6 +13,36 @@ TEST_GRAPHS = [
                       (2,3), (3,2) ], dtype=torch.int64).T,
         torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
         torch.tensor([[0, 1], [1, 0], [1, 2], [1, 0]])
+    ),
+    # Two directed edges
+    (
+        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+        torch.tensor([(0,1), (1,0),
+                      (1,2), (2,1), 
+                      (2,3), (3,1) ], dtype=torch.int64).T,
+        torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
+        torch.tensor([[0, 1], [1, 0], [1, 2], [0, 1]])
+    )
+]
+
+TEST_GRAPHS_FACTORED = [
+    # Normal undirected graph
+    (
+        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+        torch.tensor([(0,1), (1,0),
+                      (1,2), (2,1), 
+                      (2,3), (3,2) ], dtype=torch.int64).T,
+        torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
+        torch.tensor([[0, 1], [1, 2], [3, 2], [2, 1]])
+    ),
+    # Two directed edges
+    (
+        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+        torch.tensor([(0,1), (1,0),
+                      (1,2), (2,1), 
+                      (2,3), (3,1) ], dtype=torch.int64).T,
+        torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
+        torch.tensor([[0, 1], [1, 2], [3, 2], [1, 2]])
     )
 ]
 
@@ -28,7 +58,7 @@ def test_generic_mpnn_3(V, E, X, expected_output):
     assert torch.equal(output, expected_output)
 
 
-@pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
+@pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS_FACTORED)
 def test_generic_factored_mpnn_3(V, E, X, expected_output):
     """
     Technically this is an integration test (since it tests the whole pipeline)
