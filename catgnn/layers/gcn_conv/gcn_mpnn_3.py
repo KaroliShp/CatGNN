@@ -54,6 +54,61 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
         return self.mlp_update(output)
 
 
+class GCNLayer_Factored_MPNN_3(BaseMPNNLayer_3):
+
+    def __init__(self, in_dim: int, out_dim: int):
+        super().__init__()
+
+        self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
+        self.mlp_update = nn.LeakyReLU() # \phi
+    
+    def forward(self, V, E, X):
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
+        # Add self-loops
+        E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
+
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
+
+        # Do integral transform
+        return self.pipeline_backwards(V, E, X, kernel_factor=True)
+    
+    def define_pullback(self, f):
+        def pullback(E):
+            return f(self.s(E))
+        return pullback
+
+    def define_kernel_factor_1(self, pullback):
+        def kernel_factor_1(E):
+            E_star = self.get_opposite_edges(E)
+            return pullback(E), pullback(E_star)
+        return kernel_factor_1
+
+    def define_kernel_factor_2(self, kernel_factor_1):
+        def kernel_factor_2(E):
+            r_sender, r_receiver = kernel_factor_1(E)
+            return self.mlp_msg(r_sender) * self.norm.view(-1, 1)
+        return kernel_factor_2
+    
+    def define_pushforward(self, kernel):
+        def pushforward(V):
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
+        return pushforward
+    
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
+            return aggregated[V]
+        return aggregator
+
+    def update(self, X, output):
+        return self.mlp_update(output)
+
+
 class GCNLayer_MPNN_3_Forwards(BaseMPNNLayer_3):
 
     def __init__(self, in_dim: int, out_dim: int):
