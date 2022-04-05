@@ -110,9 +110,6 @@ def benchmark_catgnn_gcn_3():
 
 
 def benchmark_catgnn_gcn_3_forwards():
-    """
-    Pushforward
-    """
     benchmark(CatGNN_GCN_3_Forwards, sender_to_receiver=False)
 
 

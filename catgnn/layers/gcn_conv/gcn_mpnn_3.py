@@ -39,14 +39,14 @@ class GCNLayer_MPNN_3(BaseMPNNLayer_3):
     def define_pushforward(self, kernel):
         def pushforward(V):
             # Need to call preimage here
-            E, indices = self.t_1(V)
-            return kernel(E), indices
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
         return pushforward
 
     def define_aggregator(self, pushforward):
         def aggregator(V):
-            bags = pushforward(V)
-            aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
             return aggregated[V]
         return aggregator
 
@@ -76,17 +76,18 @@ class GCNLayer_MPNN_3_Forwards(BaseMPNNLayer_3):
         return self.pipeline_forwards(V, E, X)
 
     def pullback(self, E, f):
-        return f(self.s(E))
+        return f(self.s(E)), E
 
     def kernel_transformation(self, E, pulledback_features):
         return self.mlp_msg(pulledback_features) * self.norm.view(-1, 1)
 
-    def pushforward(self, V, E, edge_messages):
-        return edge_messages, self.t(E)
+    def pushforward(self, V, edge_messages):
+        E, bag_indices = self.t_1_chosen_E(V)
+        return edge_messages, bag_indices
     
-    def aggregator(self, V, bags_of_values):
-        aggregated = torch_scatter.scatter_add(bags_of_values[0].T, 
-                                               bags_of_values[1].repeat(bags_of_values[0].T.shape[0],1)).T
+    def aggregator(self, V, edge_messages, bag_indices):
+        aggregated = torch_scatter.scatter_add(edge_messages.T, 
+                                               bag_indices.repeat(edge_messages.T.shape[0],1)).T
         return aggregated[V]
 
     def update(self, X, output):
