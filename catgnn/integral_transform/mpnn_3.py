@@ -30,6 +30,26 @@ class BaseMPNNLayer_3(nn.Module):
         # not all edges (because selection has already happened)
         selected_E = self.chosen_E.T[torch.isin(self.t(self.chosen_E), V)].T
         return selected_E, self.t(selected_E)
+
+    def get_opposite_edges(self, E, masking_required=False):
+        # Flip row 0 and row 1 to create all the opposite edges
+        flipped_E = torch.flip(E, [0])
+
+        if masking_required:
+            # This is the case where masking is required, say in DP or in some GNN
+            # Now need to check that all such edges exist such that f assigns correct value when
+            # self.s(flipped_E) gives the sender. E.x. if the edge does not actually exist, it would be
+            # wrong to give the real value from f(self.s(flipped_E))
+
+            # These values show that the edge at that index in flipped_E exists in E
+            values, _ = torch.max((E == flipped_E.T.unsqueeze(-1)).all(dim=1).int(),dim=1) 
+            inverse_values = (values - 1)*(-1) # Inverse the mask (1 to 0 and 0 to 1)
+            return flipped_E.masked_fill(inverse_values, -1) # Assign -1 to edges that don't exist
+        else:
+            # No masking is required (for example in MPNN, when we pullback features from sender to the edge,
+            # we don't care if there is an edge from receiver back to sender). I guess if you care that would be a 
+            # type of MPNN, not the general MPNN.
+            return flipped_E
     
     def f(self, V):
         return self.X[V]
@@ -79,6 +99,10 @@ class BaseMPNNLayer_3(nn.Module):
         # Prepare pipeline
         pullback = self.define_pullback(self.f) # E -> R
         if kernel_factor:
+            # Hide extra edges as implementation detail
+            # This is not needed for MPNNs
+            # self.X = torch.cat((self.X, torch.ones(1,*self.X.shape[1:])*torch.inf),dim=0)
+
             product_arrow = self.define_kernel_factor_1(pullback) # (E -> R) x (E -> R)
             kernel_transformation = self.define_kernel_factor_2(product_arrow) # E -> R
         else:
@@ -122,12 +146,15 @@ class BaseMPNNLayer_3(nn.Module):
         pulledback_features, chosen_E = self.pullback(E, self.f)
         #print(f'pulledback features: {pulledback_features}\n')
 
-        # Do the kernel transformation on pulled node features
-        # We need selected_E to know which pulledback features belong to which edges
-        # These edge messages are only edge messages for the pulled back features
-        # In other words, assert edge_messages.shape[0] == pulledback_features.shape[0]
-        edge_messages = self.kernel_transformation(chosen_E, pulledback_features)
-        #print(f'edge messages: {edge_messages}\n')
+        if kernel_factor:
+            raise NotImplementedError
+        else:
+            # Do the kernel transformation on pulled node features
+            # We need selected_E to know which pulledback features belong to which edges
+            # These edge messages are only edge messages for the pulled back features
+            # In other words, assert edge_messages.shape[0] == pulledback_features.shape[0]
+            edge_messages = self.kernel_transformation(chosen_E, pulledback_features)
+            #print(f'edge messages: {edge_messages}\n')
 
         # For each receiver, go over their preimage edges and collect the edge messages into bags
         # We can select which receivers we want here? Or later for aggregator? TODO

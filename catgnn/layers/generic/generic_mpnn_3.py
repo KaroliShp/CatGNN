@@ -54,6 +54,56 @@ class GenericMPNNLayer_3(BaseMPNNLayer_3):
         return output
 
 
+class GenericFactoredMPNNLayer_3(BaseMPNNLayer_3):
+
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, V, E, X):
+        out = self.pipeline_backwards(V, E, X, kernel_factor=True)
+        return out
+    
+    def define_pullback(self, f):
+        def pullback(E):
+            return f(self.s(E))
+        return pullback
+
+    def define_kernel_factor_1(self, pullback):
+        def kernel_factor_1(E):
+            # Edges at this point are not yet selected
+            # The easy thing to do is to reverse the edges - that is, flip the first and second rows
+            # Senders become receivers, receivers become senders, then in pullback self.s(E_star) == self.t(E) and self.s(E) == self.t(E_star)
+            # This is what should be happening in undirected graphs or in most (?) MPNNs
+            E_star = self.get_opposite_edges(E)
+            # These pulledback features in the same rows are now for sender and receiver
+            # The ones where there is no edge from receiver to sender 
+            return pullback(E), pullback(E_star)
+        return kernel_factor_1
+
+    def define_kernel_factor_2(self, kernel_factor_1):
+        def kernel_factor_2(E):
+            r_sender, r_receiver = kernel_factor_1(E)
+            # Ignore receiver features for now
+            return r_sender
+        return kernel_factor_2
+    
+    def define_pushforward(self, kernel):
+        def pushforward(V):
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
+        return pushforward
+    
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
+            return aggregated[V]
+        return aggregator
+
+    def update(self, X, output):
+        return output
+
+
 class GenericMPNNLayer_3_Forwards(BaseMPNNLayer_3):
 
     def __init__(self):
@@ -82,18 +132,54 @@ class GenericMPNNLayer_3_Forwards(BaseMPNNLayer_3):
         return output
 
 
+class GenericFactoredMPNNLayer_3_Forwards(BaseMPNNLayer_3):
+
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, V, E, X):
+        out = self.pipeline_forwards(V, E, X, kernel_factor=False)
+        return out
+
+    def pullback(self, E, f):
+        return f(self.s(E)), E
+
+    def kernel_factor_1(self, E, E_star, pulledback_features):
+        raise NotImplementedError
+
+    def kernel_factor_2(self, E, kernel_factor_1):
+        raise NotImplementedError
+
+    def pushforward(self, V, edge_messages):
+        E, bag_indices = self.t_1_chosen_E(V) # Here we don't really need E?
+        return edge_messages, bag_indices
+    
+    def aggregator(self, V, edge_messages, bag_indices):
+        aggregated = torch_scatter.scatter_add(edge_messages.T, 
+                                               bag_indices.repeat(edge_messages.T.shape[0],1)).T
+        return aggregated[V]
+
+    def update(self, X, output):
+        return output
+
+
 if __name__ == '__main__':
     # Example graph above
     # V is a set of nodes - usual representation
+    #V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
     V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
 
     # E is a set of edges - usual sparse representation in PyG
+    """
     E = torch.tensor([(0,1), (1,0),
                       (1,2), (2,1), 
                       (2,3), (3,2) ], dtype=torch.int64).T
+    """
+    E = torch.tensor([[0, 1, 1, 2, 2, 3],
+                      [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
 
     # Feature matrix - usual representation
     X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
 
-    example_layer = GenericMPNNLayer_3_Forwards()
+    example_layer = GenericFactoredMPNNLayer_3()
     print(example_layer(V, E, X))
