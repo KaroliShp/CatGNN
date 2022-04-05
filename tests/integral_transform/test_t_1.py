@@ -3,6 +3,11 @@ from catgnn.integral_transform.mpnn_3 import BaseMPNNLayer_3
 import torch
 
 
+"""
+MPNN_3
+"""
+
+
 @pytest.mark.parametrize('V,E,expected_E,expected_indices', [
     (
         torch.tensor([0, 1, 2, 3], dtype=torch.int64),

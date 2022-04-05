@@ -2,6 +2,9 @@ import pytest
 from catgnn.integral_transform.mpnn_3 import BaseMPNNLayer_3
 import torch
 
+"""
+MPNN_3
+"""
 
 @pytest.mark.parametrize('E,expected_E', [
     # Undirected graph
@@ -38,6 +41,6 @@ def test_inverse_t_mpnn_3(E, expected_E):
     Test functionality of finding opposite edges for E
     """
     base_layer = BaseMPNNLayer_3()
-    output_E = base_layer.get_opposite_edges(E)
+    output_E = base_layer.get_opposite_edges(E, masking_required=True)
 
     assert torch.equal(output_E, expected_E)

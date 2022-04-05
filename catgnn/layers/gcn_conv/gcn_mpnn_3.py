@@ -137,7 +137,7 @@ class GCNLayer_MPNN_3_Forwards(BaseMPNNLayer_3):
         return self.mlp_msg(pulledback_features) * self.norm.view(-1, 1)
 
     def pushforward(self, V, edge_messages):
-        E, bag_indices = self.t_1_chosen_E(V)
+        E, bag_indices = self.t_1(V)
         return edge_messages, bag_indices
     
     def aggregator(self, V, edge_messages, bag_indices):

@@ -120,7 +120,7 @@ class GenericMPNNLayer_3_Forwards(BaseMPNNLayer_3):
         return pulledback_features
 
     def pushforward(self, V, edge_messages):
-        E, bag_indices = self.t_1_chosen_E(V) # Here we don't really need E?
+        E, bag_indices = self.t_1(V) # Here we don't really need E?
         return edge_messages, bag_indices
     
     def aggregator(self, V, edge_messages, bag_indices):

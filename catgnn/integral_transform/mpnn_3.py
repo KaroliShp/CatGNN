@@ -25,12 +25,6 @@ class BaseMPNNLayer_3(nn.Module):
         selected_E = self.E.T[torch.isin(self.t(self.E), V)].T
         return selected_E, self.t(selected_E)
 
-    def t_1_chosen_E(self, V):
-        # This is identical to self.t_1, however preimages are gotten based on the selected edges,
-        # not all edges (because selection has already happened)
-        selected_E = self.chosen_E.T[torch.isin(self.t(self.chosen_E), V)].T
-        return selected_E, self.t(selected_E)
-
     def get_opposite_edges(self, E, masking_required=False):
         # Flip row 0 and row 1 to create all the opposite edges
         flipped_E = torch.flip(E, [0])
@@ -160,7 +154,7 @@ class BaseMPNNLayer_3(nn.Module):
         # We can select which receivers we want here? Or later for aggregator? TODO
         # Note that pushforward will get preimages for V from all edges
         # However, it should only get preimages out of edges that were selected by pullback
-        self.chosen_E = chosen_E
+        self.E = chosen_E
         edge_messages, bag_indices = self.pushforward(V, edge_messages)
         #print(f'edge messages: {edge_messages}, bag indices: {bag_indices}\n')
 
