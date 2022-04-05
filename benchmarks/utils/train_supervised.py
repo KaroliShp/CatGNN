@@ -53,7 +53,7 @@ def train_eval_loop(model, train_loader, test_loader):
         train_acc = evaluate(train_loader, model)
         test_acc = evaluate(test_loader, model)
 
-        if epoch % 1 == 0:
+        if epoch % 10 == 0:
             print(f"Epoch {epoch} with train loss: {train_loss:.3f} train accuracy: {train_acc:.3f} test accuracy: {test_acc:.3f}")
         # Store the loss and the accuracy for the final plot
         epoch_stats = {'train_acc': train_acc, 'test_acc': test_acc, 'epoch':epoch}

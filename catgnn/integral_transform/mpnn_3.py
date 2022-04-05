@@ -11,19 +11,20 @@ class BaseMPNNLayer_3(nn.Module):
     Directed graph span construction
     """
 
-    def s(self, E: torch.Tensor) -> torch.Tensor:
+    def s(self, E):
         return E[1]
 
-    def t(self, E: torch.Tensor) -> torch.Tensor:
+    def t(self, E):
         return E[0]
 
     def t_1(self, V):
         # Get preimages of only those edges where the receiver is in V
-        # For now, assume V is always all nodes (we cannot select the nodes)
+        # Return the edges in the preimage and the bag indices
+        # (which node's "bag"/preimage the edge belongs to)
         selected_E = self.E.T[torch.isin(self.t(self.E), V)].T
         return selected_E, self.t(selected_E)
     
-    def f(self, V: torch.Tensor) -> torch.Tensor:
+    def f(self, V):
         return self.X[V]
 
     """
