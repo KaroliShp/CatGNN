@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch_geometric.transforms as T
 from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import ChebConv, GCNConv  # noqa
-from catgnn.layers.gcn_conv.gcn_mpnn_2 import GCNLayer_MPNN_2
+from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2
 
 from timeit import default_timer as timer
 from datetime import timedelta
