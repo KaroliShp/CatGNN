@@ -1,44 +1,43 @@
-from torch_geometric.datasets import Planetoid
 import torch
-from catgnn.datasets.dataset import Dataset
+from catgnn.datasets.semi_supervised_dataset import SemiSupervisedDataset
+import torch_geometric
 
-class PlanetoidDataset(Dataset):
+class PlanetoidDataset(SemiSupervisedDataset):
 
-    def __init__(self, name):
+    def __init__(self, name, split, normalize=False):
         super(PlanetoidDataset, self).__init__()
 
         assert name in ["Cora", "CiteSeer", "PubMed"]
-        cora_pyg = Planetoid(root=f'/tmp/{name}', name=name, split="full")
-        self.cora_data = cora_pyg[0]
+        assert split in ["full", "public", "random"]
 
-    def train_val_test_split(self):
-        train_x = self.cora_data.x[self.cora_data.train_mask]
-        train_y = self.cora_data.y[self.cora_data.train_mask]
+        if normalize:
+            self.dataset_obj = torch_geometric.datasets.Planetoid(root=f'/tmp/{name}', name=name, split=split, transform=torch_geometric.transforms.NormalizeFeatures())
+        else:
+            self.dataset_obj = torch_geometric.datasets.Planetoid(root=f'/tmp/{name}', name=name, split=split)
+        self.dataset = self.dataset_obj[0]
 
-        valid_x = self.cora_data.x[self.cora_data.val_mask]
-        valid_y = self.cora_data.y[self.cora_data.val_mask]
-
-        test_x = self.cora_data.x[self.cora_data.test_mask]
-        test_y = self.cora_data.y[self.cora_data.test_mask]
-
-        return train_x, train_y, valid_x, valid_y, test_x, test_y
+    def split(self):
+        train_y = self.dataset.y[self.dataset.train_mask]
+        valid_y = self.dataset.y[self.dataset.val_mask]
+        test_y = self.dataset.y[self.dataset.test_mask]
+        return train_y, valid_y, test_y
 
     def get_split_masks(self):
-        return self.cora_data.train_mask, self.cora_data.val_mask, self.cora_data.test_mask
+        return self.dataset.train_mask, self.dataset.val_mask, self.dataset.test_mask
 
     def get_features(self):
-        return self.cora_data.x
+        return self.dataset.x
     
     def get_edges(self, sender_to_receiver=True):
-        if sender_to_receiver:
-            return self.cora_data.edge_index
+        if sender_to_receiver: # TODO
+            return self.dataset.edge_index
         else:
-            E_swapped = self.cora_data.edge_index.T
+            E_swapped = self.dataset.edge_index.T
             E_swapped = E_swapped[E_swapped[:, 1].sort()[1]]
             return torch.cat((E_swapped[:,1].view(-1,1), E_swapped[:,0].view(-1,1)), dim=1).T    
     
     def get_vertices(self):
-        return torch.arange(0,torch.max(self.cora_data.edge_index)+1)
+        return torch.arange(0,torch.max(self.dataset.edge_index)+1)
 
-    def validate_dataset(self):
-        raise NotImplementedError
+    def get_dimensions(self):
+        return self.dataset_obj.num_features, self.dataset_obj.num_classes
