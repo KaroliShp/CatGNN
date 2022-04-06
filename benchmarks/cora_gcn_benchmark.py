@@ -1,10 +1,16 @@
 from benchmarks.utils.train_transductive import train_eval_loop
 from catgnn.layers.gcn_conv.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
 from catgnn.layers.gcn_conv.gcn_mpnn_2 import GCNLayer_MPNN_2, GCNLayer_Factored_MPNN_2, GCNLayer_MPNN_2_Forwards
+from catgnn.layers.sgc.sgc_mpnn_2 import SGCLayer_MPNN_2
 import torch
 from torch import nn
 from catgnn.datasets.planetoid import PlanetoidDataset
 import torch_geometric
+
+
+"""
+GCN models
+"""
 
 
 class CatGNN_GCN_1(nn.Module):
@@ -67,6 +73,36 @@ class PyG_GCN(nn.Module):
         return self.gcn_layer(X, E)
 
 
+"""
+SGC models
+"""
+
+
+class CatGNN_SGC_2(nn.Module):
+
+    def __init__(self, input_dim, output_dim):
+        super(CatGNN_SGC_2, self).__init__()
+        self.gcn_layer = SGCLayer_MPNN_2(input_dim, output_dim)
+
+    def forward(self, V, E, X):
+        return self.gcn_layer(V, E, X)
+
+
+class PyG_SGC(nn.Module):
+
+    def __init__(self, input_dim, output_dim):
+        super(PyG_SGC, self).__init__()
+        self.gcn_layer = torch_geometric.nn.conv.SGConv(input_dim, output_dim, K=2, cached=False, add_self_loops=True)
+
+    def forward(self, V, E, X):
+        return self.gcn_layer(X, E)
+
+
+"""
+Benchmark methods
+"""
+
+
 def benchmark(model_nn, sender_to_receiver=True):
     """
     Benchmark Cora dataset
@@ -109,14 +145,28 @@ def benchmark_catgnn_gcn_2_forwards():
     benchmark(CatGNN_GCN_2_Forwards, sender_to_receiver=False)
 
 
+def benchmark_catgnn_sgc_2():
+    benchmark(CatGNN_SGC_2, sender_to_receiver=False)
+
+
 def benchmark_pyg_gcn():
     benchmark(PyG_GCN)
+
+
+def benchmark_pyg_sgc():
+    benchmark(PyG_SGC)
 
 
 if __name__ == '__main__':
     #benchmark_catgnn_gcn_1()
     #benchmark_catgnn_factored_gcn_1()
-    benchmark_catgnn_gcn_2()
+
+    #benchmark_catgnn_gcn_2()
     #benchmark_catgnn_factored_gcn_2()
     #benchmark_catgnn_gcn_2_forwards()
+
+    #benchmark_catgnn_sgc_2()
+
     #benchmark_pyg_gcn()
+
+    benchmark_pyg_sgc()
