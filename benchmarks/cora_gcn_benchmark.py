@@ -82,7 +82,7 @@ class CatGNN_SGC_2(nn.Module):
 
     def __init__(self, input_dim, output_dim):
         super(CatGNN_SGC_2, self).__init__()
-        self.gcn_layer = SGCLayer_MPNN_2(input_dim, output_dim)
+        self.gcn_layer = SGCLayer_MPNN_2(input_dim, output_dim, K=2)
 
     def forward(self, V, E, X):
         return self.gcn_layer(V, E, X)
@@ -158,6 +158,9 @@ def benchmark_pyg_sgc():
 
 
 if __name__ == '__main__':
+    """
+    GCN
+    """
     #benchmark_catgnn_gcn_1()
     #benchmark_catgnn_factored_gcn_1()
 
@@ -165,8 +168,11 @@ if __name__ == '__main__':
     #benchmark_catgnn_factored_gcn_2()
     #benchmark_catgnn_gcn_2_forwards()
 
-    #benchmark_catgnn_sgc_2()
-
     #benchmark_pyg_gcn()
+
+    """
+    SGC
+    """
+    #benchmark_catgnn_sgc_2()
 
     benchmark_pyg_sgc()

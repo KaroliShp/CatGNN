@@ -12,10 +12,10 @@ class BaseMPNNLayer_2(nn.Module):
     """
 
     def s(self, E):
-        return E[1]
+        return E[0]
 
     def t(self, E):
-        return E[0]
+        return E[1]
 
     def t_1(self, V):
         # Get preimages of only those edges where the receiver is in V

@@ -3,7 +3,6 @@ from catgnn.typing import *
 import torch
 from torch import nn
 import torch_scatter
-import torch_geometric
 
 
 class GCNLayer_MPNN_2(BaseMPNNLayer_2):
@@ -15,12 +14,14 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         self.mlp_update = nn.LeakyReLU() # \phi
     
     def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
-        # Add self-loops to the adjacency matrix.
+        # Compute degrees
+        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
+        
+        # Add self-loops
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
-        # Compute normalization.
-        self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(0, E[1], torch.ones(E.shape[1], dtype=torch.int64))
-        self.norm = torch.sqrt(1/(self.degrees[E[0]] * self.degrees[E[1]]))
+        # 3. Compute normalization and provide as edge features for kernel transform
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
 
         # Do integral transform
         return self.pipeline_backwards(V, E, X)
@@ -37,6 +38,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
     def define_pushforward(self, kernel):
         def pushforward(V):
+            # Need to call preimage here
             E, bag_indices = self.t_1(V)
             return kernel(E), bag_indices
         return pushforward
@@ -49,7 +51,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return output
+        return self.mlp_update(output)
 
 
 class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):

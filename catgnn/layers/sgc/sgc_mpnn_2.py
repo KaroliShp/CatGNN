@@ -7,7 +7,7 @@ import torch_scatter
 
 class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
-    def __init__(self, in_dim: int, out_dim: int, K: int = 2):
+    def __init__(self, in_dim: int, out_dim: int, K: int = 1):
         super().__init__()
 
         self.mlp_update = nn.Linear(in_dim, out_dim) # \psi
@@ -21,14 +21,10 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
         # 3. Compute normalization and provide as edge features for kernel transform
-        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]])
-
-        out = self.pipeline_backwards(V, E, X)
-        for k in range(self.K-1):
-            out = self.pipeline_backwards(V, E, out)
+        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]]) ** self.K
 
         # Do integral transform
-        return self.mlp_update(X)
+        return self.pipeline_backwards(V, E, X)
 
     def define_pullback(self, f):
         def pullback(E):
@@ -55,5 +51,5 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return output
+        return self.mlp_update(output)
 
