@@ -2,7 +2,7 @@ import torch
 
 
 def get_degrees(V, E):
-    return torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype))
+    return torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(0, E[1], torch.ones(E.shape[1], dtype=torch.int64))
 
 
 def add_self_loops(V, E):

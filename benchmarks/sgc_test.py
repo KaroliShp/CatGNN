@@ -6,6 +6,8 @@ import torch.nn.functional as F
 from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import SGConv
 
+from catgnn.layers.sgc.sgc_mpnn_2 import SGCLayer_MPNN_2
+
 from timeit import default_timer as timer
 from datetime import timedelta
 
@@ -18,13 +20,19 @@ data = dataset[0]
 class Net(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = SGConv(dataset.num_features, dataset.num_classes, K=2,
-                            cached=True)
+        self.conv1 = SGConv(dataset.num_features, dataset.num_classes, K=2, cached=False)
+        #self.conv1 = SGCLayer_MPNN_2(dataset.num_features, dataset.num_classes, K=2)
 
     def forward(self):
         x, edge_index = data.x, data.edge_index
         x = self.conv1(x, edge_index)
         return F.log_softmax(x, dim=1)
+        """
+        x, edge_index = data.x, data.edge_index
+        v = torch.arange(0,torch.max(edge_index)+1)
+        x = self.conv1(v, edge_index, x)
+        return F.log_softmax(x, dim=1)
+        """
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -53,6 +61,7 @@ best_val_acc = test_acc = 0
 for epoch in range(1, 101):
     start = timer()
     train()
+    end = timer()
     print(f'Time: {timedelta(seconds=end-start)}')
 
     train_acc, val_acc, tmp_test_acc = test()

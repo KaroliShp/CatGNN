@@ -14,17 +14,19 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
         self.K = K
     
     def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
-        # Compute degrees
-        self.degrees = torch.zeros(V.shape[0], dtype=E.dtype).scatter_add_(0, E.T[0], torch.ones(E.T[0].shape, dtype=E.dtype)) + 1
-        
-        # Add self-loops
+        # Add self-loops to the adjacency matrix.
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
-        # 3. Compute normalization and provide as edge features for kernel transform
-        self.norm = torch.sqrt(1/self.degrees[E[0]] * self.degrees[E[1]]) ** self.K
+        # Compute normalization.
+        self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(0, E[1], torch.ones(E.shape[1], dtype=torch.int64))
+        self.norm = torch.sqrt(1/(self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
-        return self.pipeline_backwards(V, E, X)
+        out = self.pipeline_backwards(V, E, X)
+        for k in range(self.K-1):
+            out = self.pipeline_backwards(V, E, out)
+
+        return self.mlp_update(out)
 
     def define_pullback(self, f):
         def pullback(E):
@@ -51,5 +53,5 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(output)
+        return output
 

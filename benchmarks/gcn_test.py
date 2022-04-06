@@ -8,7 +8,6 @@ import torch_geometric.transforms as T
 from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import ChebConv, GCNConv  # noqa
 from catgnn.layers.gcn_conv.gcn_mpnn_2 import GCNLayer_MPNN_2
-from catgnn.layers.gcn_conv.pyg_custom_gcn import GCNConvCustom
 
 from timeit import default_timer as timer
 from datetime import timedelta
@@ -40,9 +39,6 @@ class Net(torch.nn.Module):
 
         self.conv1 = GCNLayer_MPNN_2(dataset.num_features, 16)
         self.conv2 = GCNLayer_MPNN_2(16, dataset.num_classes)
-
-        #self.conv1 = GCNConvCustom(dataset.num_features, 16)
-        #self.conv2 = GCNConvCustom(16, dataset.num_classes)
 
         # self.conv1 = ChebConv(data.num_features, 16, K=2)
         # self.conv2 = ChebConv(16, data.num_features, K=2)
