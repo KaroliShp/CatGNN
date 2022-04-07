@@ -11,64 +11,94 @@ General layers
 """
 
 
-class GCN_1(nn.Module):
+class GCN_1(torch.nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=1, num_layers=1, factored=False, forwards=False):
+        super().__init__()
+        assert (factored and forwards) == False, 'Factored and forwards not supported at the moment'
+        if factored:
+            print('Factored implementation')
+            self.chosen_layer = GCNLayer_Factored_MPNN_1
+        elif forwards:
+            raise NotImplementedError
+        else:
+            print('Standard implementation')
+            self.chosen_layer = GCNLayer_MPNN_1
 
-    def __init__(self, input_dim, output_dim):
-        super(GCN_1, self).__init__()
-        self.gcn_layer = GCNLayer_MPNN_1(input_dim, output_dim)
-
-    def forward(self, V, E, X):
-        return self.gcn_layer(V, E, X)
-
-
-class Factored_GCN_1(nn.Module):
-
-    def __init__(self, input_dim, output_dim):
-        super(Factored_GCN_1, self).__init__()
-        self.gcn_layer = GCNLayer_Factored_MPNN_1(input_dim, output_dim)
-
-    def forward(self, V, E, X):
-        return self.gcn_layer(V, E, X)
-
-
-class GCN_2(nn.Module):
-
-    def __init__(self, input_dim, output_dim):
-        super(GCN_2, self).__init__()
-        self.gcn_layer = GCNLayer_MPNN_2(input_dim, output_dim)
+        self.num_layers = num_layers
+        if self.num_layers == 1:
+            self.layers = [self.chosen_layer(input_dim, output_dim)]
+        else:
+            self.layers = [self.chosen_layer(input_dim, hidden_dim)] + [self.chosen_layer(hidden_dim, hidden_dim) for _ in range(self.num_layers-2)]
+            self.layers += [self.chosen_layer(hidden_dim, output_dim)]
+        self.layers = nn.ModuleList(self.layers)
 
     def forward(self, V, E, X):
-        return self.gcn_layer(V, E, X)
+        if self.num_layers == 1:
+            return nn.functional.relu(self.layers[0](V, E, X))
+        
+        H = nn.functional.relu(self.layers[0](V, E, X))
+        for i in range(self.num_layers-2):
+            H = nn.functional.relu(self.layers[i+1](V, E, H))
+        return self.layers[-1](V, E, H) # PyG uses log softmax here
 
 
-class Factored_GCN_2(nn.Module):
+class GCN_2(torch.nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=1, num_layers=1, factored=False, forwards=False):
+        super().__init__()
+        assert (factored and forwards) == False, 'Factored and forwards not supported at the moment'
+        if factored:
+            print('Factored implementation')
+            self.chosen_layer = GCNLayer_Factored_MPNN_2
+        elif forwards:
+            print('Forwards implemenation')
+            self.chosen_layer = GCNLayer_MPNN_2_Forwards
+        else:
+            print('Standard implementation')
+            self.chosen_layer = GCNLayer_MPNN_2
 
-    def __init__(self, input_dim, output_dim):
-        super(Factored_GCN_2, self).__init__()
-        self.gcn_layer = GCNLayer_Factored_MPNN_2(input_dim, output_dim)
+        self.num_layers = num_layers
+        if self.num_layers == 1:
+            self.layers = [self.chosen_layer(input_dim, output_dim)]
+        else:
+            self.layers = [self.chosen_layer(input_dim, hidden_dim)] + [self.chosen_layer(hidden_dim, hidden_dim) for _ in range(self.num_layers-2)]
+            self.layers += [self.chosen_layer(hidden_dim, output_dim)]
+        self.layers = nn.ModuleList(self.layers)
 
     def forward(self, V, E, X):
-        return self.gcn_layer(V, E, X)
+        if self.num_layers == 1:
+            return nn.functional.relu(self.layers[0](V, E, X))
+        
+        H = nn.functional.relu(self.layers[0](V, E, X))
+        for i in range(self.num_layers-2):
+            H = nn.functional.relu(self.layers[i+1](V, E, H))
+        return self.layers[-1](V, E, H) # PyG uses log softmax here
 
 
-class GCN_2_Forwards(nn.Module):
+class PyG_GCN(torch.nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=1, num_layers=1):
+        super().__init__()
 
-    def __init__(self, input_dim, output_dim):
-        super(GCN_2_Forwards, self).__init__()
-        self.gcn_layer = GCNLayer_MPNN_2_Forwards(input_dim, output_dim)
+        self.num_layers = num_layers
+        if self.num_layers == 1:
+            self.layers = [torch_geometric.nn.conv.GCNConv(input_dim, output_dim, cached=False, add_self_loops=True)]
+        else:
+            self.layers = [torch_geometric.nn.conv.GCNConv(input_dim, hidden_dim, cached=False, add_self_loops=True)] + [torch_geometric.nn.conv.GCNConv(hidden_dim, hidden_dim, cached=False, add_self_loops=True) for _ in range(self.num_layers-2)]
+            self.layers += [torch_geometric.nn.conv.GCNConv(hidden_dim, output_dim, cached=False, add_self_loops=True)]
+        self.layers = nn.ModuleList(self.layers)
+        print(self.layers)
 
     def forward(self, V, E, X):
-        return self.gcn_layer(V, E, X)
-
-
-class PyG_GCN(nn.Module):
-
-    def __init__(self, input_dim, output_dim):
-        super(PyG_GCN, self).__init__()
-        self.gcn_layer = torch_geometric.nn.conv.GCNConv(input_dim, output_dim, cached=False, add_self_loops=True)
-
-    def forward(self, V, E, X):
-        return self.gcn_layer(X, E)
+        if self.num_layers == 1:
+            print('Only here')
+            return nn.functional.relu(self.layers[0](X, E))
+        
+        H = nn.functional.relu(self.layers[0](X, E))
+        print('Here 1')
+        for i in range(self.num_layers-2):
+            print(f'Here 2: {i}')
+            H = nn.functional.relu(self.layers[i+1](H, E))
+        print('Here 3')
+        return self.layers[-1](H, E) # PyG uses log softmax here
 
 
 """
@@ -130,3 +160,24 @@ class PyG_GCN_Paper(torch.nn.Module):
         H = self.conv2(H, E)
         return H # PyG uses log softmax here
 
+
+if __name__ == '__main__':
+    # Example graph above
+    # V is a set of nodes - usual representation
+    #V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
+    V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
+
+    # E is a set of edges - usual sparse representation in PyG
+    E = torch.tensor([(0,1), (1,0),
+                      (1,2), (2,1), 
+                      (2,3), (3,2) ], dtype=torch.int64).T
+    """
+    E = torch.tensor([[0, 1, 1, 2, 2, 3],
+                      [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
+    """
+
+    # Feature matrix - usual representation
+    X = torch.tensor([[0,0], [0,1], [1,0], [1,1]], dtype=torch.float32)
+
+    example_layer = PyG_GCN(2, 2, num_layers=4)
+    print(example_layer(V, E, X))

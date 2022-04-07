@@ -2,14 +2,14 @@ from benchmarks.utils.train_semi_supervised import train_eval_loop
 import torch
 from catgnn.datasets.planetoid import PlanetoidDataset
 import torch_geometric
-from benchmarks.models.semi_supervised_models.gcn_models import GCN_1_Paper, GCN_2_Paper, PyG_GCN_Paper
+from benchmarks.models.semi_supervised_models.gcn_models import GCN_1, GCN_2, PyG_GCN, GCN_1_Paper, GCN_2_Paper, PyG_GCN_Paper
 from benchmarks.models.semi_supervised_models.sgc_models import SGC_2_Paper, PyG_SGC_Paper
 import numpy as np
 from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, stringify_statistics
 
 
 def run_benchmark(dataset_name, model_nn, split='public', normalize=True,
-                  lr=0.01, weight_decay=5e-4, num_epochs=200, debug=False, 
+                  lr=0.01, weight_decay=5e-4, num_epochs=100, debug=True, 
                   sender_to_receiver=True, **kwargs):
     dataset = PlanetoidDataset(dataset_name, split, normalize)
 
@@ -22,7 +22,7 @@ def run_benchmark(dataset_name, model_nn, split='public', normalize=True,
     E = dataset.get_edges(sender_to_receiver)
     X = dataset.get_features()
 
-    model = model_nn(input_dim=input_dim, output_dim=output_dim, **kwargs)
+    model = model_nn(input_dim=input_dim, output_dim=output_dim, hidden_dim=input_dim, **kwargs)
 
     return train_eval_loop(model, V, E, X, train_y, train_mask, 
                            val_y, val_mask, test_y, test_mask, 
@@ -102,7 +102,35 @@ def run_paper_benchmarks(name='Cora', repeat=2):
     print(stringify_statistics(experiment_10, train_res_10, val_res_10, test_res_10, runtime_res_10))
 
 
+def run_layer_benchmarks(name='Cora', repeat=2):
+    # Benchmarks for layers (pure runtime)
+    """
+    experiment_0 = 'Cora CatGNN GCN (1)'
+    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_1_Paper)
+    """
+
+    experiment_1 = 'Cora CatGNN GCN (2), num_layers=1'
+    train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, name, GCN_2, split='full', num_layers=1)
+
+    experiment_2 = 'Cora CatGNN GCN (2, factored), num_layers=1'
+    train_res_2, val_res_2, test_res_2, runtime_res_2 = repeat_benchmark(repeat, run_benchmark, experiment_2, name, GCN_2, split='full', factored=True, num_layers=1)
+
+    experiment_3 = 'Cora CatGNN GCN (2, forwards), num_layers=1'
+    train_res_3, val_res_3, test_res_3, runtime_res_3 = repeat_benchmark(repeat, run_benchmark, experiment_3, name, GCN_2, split='full', forwards=True, num_layers=1)
+
+    experiment_4 = 'Cora PyG GCN, public split, num_layers=1'
+    train_res_4, val_res_4, test_res_4, runtime_res_4 = repeat_benchmark(repeat, run_benchmark, experiment_4, name, PyG_GCN, split='full', num_layers=1)
+
+    print('')
+    print(stringify_statistics(experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1))
+    print(stringify_statistics(experiment_2, train_res_2, val_res_2, test_res_2, runtime_res_2))
+    print(stringify_statistics(experiment_3, train_res_3, val_res_3, test_res_3, runtime_res_3))
+    print(stringify_statistics(experiment_4, train_res_4, val_res_4, test_res_4, runtime_res_4))
+
+
 if __name__ == '__main__':
-    run_paper_benchmarks() # Cora
-    # run_paper_benchmarks(name='CiteSeer')
-    # run_paper_benchmarks(name='PubMed')
+    #run_paper_benchmarks()  # Cora
+    #run_paper_benchmarks(name='CiteSeer')
+    #run_paper_benchmarks(name='PubMed')
+
+    run_layer_benchmarks()  # Cora
