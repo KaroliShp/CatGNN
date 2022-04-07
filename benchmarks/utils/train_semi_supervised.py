@@ -9,7 +9,7 @@ def train(V, E, X, y, mask, model, optimiser):
     model.train()
     optimiser.zero_grad()
     y_hat = model(V, E, X)[mask]
-    loss = nn.functional.cross_entropy(y_hat, y) # TODO
+    loss = nn.functional.cross_entropy(y_hat, y) # TODO - PyG uses nll here
     loss.backward()
     optimiser.step()
     return loss.data
@@ -47,7 +47,8 @@ def train_eval_loop(model, V, E, X, train_y, train_mask,
         train_loss = train(V, E, X, train_y, train_mask, model, optimiser)
         end = timer()
         runtimes.append(timedelta(seconds=end-start))
-        print(f'Time: {runtimes[-1]}')
+        if debug:
+            print(f'Time: {runtimes[-1]}')
 
         train_acc = evaluate(V, E, X, train_y, train_mask, model)
         valid_acc = evaluate(V, E, X, valid_y, valid_mask, model)
