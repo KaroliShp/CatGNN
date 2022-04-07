@@ -75,12 +75,41 @@ class PyG_GCN(nn.Module):
 Paper benchmarking
 """
 
+class GCN_1_Paper(torch.nn.Module):
+    def __init__(self, input_dim, output_dim, factored=False):
+        super().__init__()
+        if factored:
+            print('Factored implementation')
+            self.conv1 = GCNLayer_Factored_MPNN_1(input_dim, 16)
+            self.conv2 = GCNLayer_Factored_MPNN_1(16, output_dim)
+        else:
+            print('Standard implementation')
+            self.conv1 = GCNLayer_MPNN_1(input_dim, 16)
+            self.conv2 = GCNLayer_MPNN_1(16, output_dim)
+
+    def forward(self, V, E, X):
+        H = nn.functional.relu(self.conv1(V, E, X))
+        H = nn.functional.dropout(H, training=self.training)
+        H = self.conv2(V, E, H)
+        return H # PyG uses log softmax here
+
 
 class GCN_2_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, factored=False, forwards=False):
         super().__init__()
-        self.conv1 = GCNLayer_MPNN_2(input_dim, 16)
-        self.conv2 = GCNLayer_MPNN_2(16, output_dim)
+        assert (factored and forwards) == False, 'Factored and forwards not supported at the moment'
+        if factored:
+            print('Factored implementation')
+            self.conv1 = GCNLayer_Factored_MPNN_2(input_dim, 16)
+            self.conv2 = GCNLayer_Factored_MPNN_2(16, output_dim)
+        elif forwards:
+            print('Forwards implemenation')
+            self.conv1 = GCNLayer_MPNN_2_Forwards(input_dim, 16)
+            self.conv2 = GCNLayer_MPNN_2_Forwards(16, output_dim)
+        else:
+            print('Standard implementation')
+            self.conv1 = GCNLayer_MPNN_2(input_dim, 16)
+            self.conv2 = GCNLayer_MPNN_2(16, output_dim)
 
     def forward(self, V, E, X):
         H = nn.functional.relu(self.conv1(V, E, X))
