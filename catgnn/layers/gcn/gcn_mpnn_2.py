@@ -48,7 +48,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return output # dont forget to fix it back after benchmark tests are rewritten
+        return self.mlp_update(output) # dont forget to fix it back after benchmark tests are rewritten
 
 
 class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):

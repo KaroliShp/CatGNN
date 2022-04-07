@@ -85,19 +85,14 @@ class PyG_GCN(torch.nn.Module):
             self.layers = [torch_geometric.nn.conv.GCNConv(input_dim, hidden_dim, cached=False, add_self_loops=True)] + [torch_geometric.nn.conv.GCNConv(hidden_dim, hidden_dim, cached=False, add_self_loops=True) for _ in range(self.num_layers-2)]
             self.layers += [torch_geometric.nn.conv.GCNConv(hidden_dim, output_dim, cached=False, add_self_loops=True)]
         self.layers = nn.ModuleList(self.layers)
-        print(self.layers)
 
     def forward(self, V, E, X):
         if self.num_layers == 1:
-            print('Only here')
             return nn.functional.relu(self.layers[0](X, E))
         
         H = nn.functional.relu(self.layers[0](X, E))
-        print('Here 1')
         for i in range(self.num_layers-2):
-            print(f'Here 2: {i}')
             H = nn.functional.relu(self.layers[i+1](H, E))
-        print('Here 3')
         return self.layers[-1](H, E) # PyG uses log softmax here
 
 
