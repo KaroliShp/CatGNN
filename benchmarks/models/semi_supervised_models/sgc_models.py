@@ -15,9 +15,9 @@ General layers
 
 class SGC_2(nn.Module):
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, K=2):
         super(SGC_2, self).__init__()
-        self.gcn_layer = SGCLayer_MPNN_2(input_dim, output_dim, K=2)
+        self.gcn_layer = SGCLayer_MPNN_2(input_dim, output_dim, K=K)
 
     def forward(self, V, E, X):
         return self.gcn_layer(V, E, X)
@@ -25,9 +25,9 @@ class SGC_2(nn.Module):
 
 class PyG_SGC(nn.Module):
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, K=K):
         super(PyG_SGC, self).__init__()
-        self.gcn_layer = torch_geometric.nn.conv.SGConv(input_dim, output_dim, K=2, cached=False, add_self_loops=True)
+        self.gcn_layer = torch_geometric.nn.conv.SGConv(input_dim, output_dim, K=K, cached=False, add_self_loops=True)
 
     def forward(self, V, E, X):
         return self.gcn_layer(X, E)
