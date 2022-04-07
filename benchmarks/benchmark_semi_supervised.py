@@ -4,11 +4,11 @@ from catgnn.datasets.planetoid import PlanetoidDataset
 import torch_geometric
 from benchmarks.models.semi_supervised_models.gcn_models import GCN_1_Paper, GCN_2_Paper, PyG_GCN_Paper
 import numpy as np
-from benchmarks.utils.analyse_performance import analyse_repeated_benchmark
+from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, stringify_statistics
 
 
 def run_benchmark(dataset_name, model_nn, split='public', normalize=True,
-                  lr=0.01, weight_decay=5e-4, num_epochs=100, debug=False, 
+                  lr=0.01, weight_decay=5e-4, num_epochs=200, debug=False, 
                   sender_to_receiver=True, **kwargs):
     dataset = PlanetoidDataset(dataset_name, split, normalize)
 
@@ -28,7 +28,7 @@ def run_benchmark(dataset_name, model_nn, split='public', normalize=True,
                            lr, weight_decay, num_epochs, debug)
 
 
-def repeat_benchmark(repeat, func, *args, **kwargs):
+def repeat_benchmark(repeat, func, experiment_name, *args, **kwargs):
     train_accs = []
     val_accs = []
     test_accs = []
@@ -40,12 +40,12 @@ def repeat_benchmark(repeat, func, *args, **kwargs):
         val_accs.append(training_stats['val_acc'][-1])
         test_accs.append(training_stats['test_acc'][-1])
         avg_runtimes.append(avg_runtime)
-        print(f'Repetition: {r}, train_acc: {train_accs[-1]}, val_acc: {val_accs[-1]}, test_acc: {test_accs[-1]}, runtime: {avg_runtimes[-1]}')
+        print(f'{experiment_name} repetition: {r}, train_acc: {train_accs[-1]}, val_acc: {val_accs[-1]}, test_acc: {test_accs[-1]}, runtime: {avg_runtimes[-1]}')
 
     return analyse_repeated_benchmark(train_accs, val_accs, test_accs, avg_runtimes, repeat)
 
 
-def run_all_benchmarks(repeat=2):
+def run_all_benchmarks(repeat=5):
     # Cora benchmarks for paper reproducability
     """
     experiment_0 = 'Cora CatGNN GCN (1)'
@@ -53,25 +53,22 @@ def run_all_benchmarks(repeat=2):
     """
 
     experiment_1 = 'Cora CatGNN GCN (2)'
-    train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_2_Paper)
+    train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, 'Cora', GCN_2_Paper)
 
     experiment_2 = 'Cora CatGNN GCN (2, factored)'
-    train_res_2, val_res_2, test_res_2, runtime_res_2 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_2_Paper, factored=True)
+    train_res_2, val_res_2, test_res_2, runtime_res_2 = repeat_benchmark(repeat, run_benchmark, experiment_2, 'Cora', GCN_2_Paper, factored=True)
 
     experiment_3 = 'Cora CatGNN GCN (2, factored)'
-    train_res_3, val_res_3, test_res_3, runtime_res_3 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_2_Paper, forwards=True)
+    train_res_3, val_res_3, test_res_3, runtime_res_3 = repeat_benchmark(repeat, run_benchmark, experiment_3, 'Cora', GCN_2_Paper, forwards=True)
 
     experiment_4 = 'Cora PyG GCN'
-    train_res_4, val_res_4, test_res_4, runtime_res_4 = repeat_benchmark(repeat, run_benchmark, 'Cora', PyG_GCN_Paper)
+    train_res_4, val_res_4, test_res_4, runtime_res_4 = repeat_benchmark(repeat, run_benchmark, experiment_4, 'Cora', PyG_GCN_Paper)
 
-    
-
-    """
-    print(f'avg_train_acc: {train_res[0]}, std: {train_res[1]}, sem: {train_res[2]}')
-    print(f'avg_val_acc: {val_res[0]}, std: {val_res[1]}, sem: {val_res[2]}')
-    print(f'avg_test_acc: {test_res[0]}, std: {test_res[1]}, sem: {test_res[2]}')
-    print(f'avg_runtime: {runtime_res[0]}, std: {runtime_res[1]}, sem: {runtime_res[2]}')
-    """
+    print('')
+    print(stringify_statistics(experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1))
+    print(stringify_statistics(experiment_2, train_res_2, val_res_2, test_res_2, runtime_res_2))
+    print(stringify_statistics(experiment_3, train_res_3, val_res_3, test_res_3, runtime_res_3))
+    print(stringify_statistics(experiment_4, train_res_4, val_res_4, test_res_4, runtime_res_4))
 
     # CiteSeer benchmarks for a single layer
     # TODO
