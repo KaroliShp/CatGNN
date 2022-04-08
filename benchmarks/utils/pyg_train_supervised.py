@@ -1,3 +1,8 @@
+"""
+Adapted from:
+https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/train_eval.py
+"""
+
 from timeit import default_timer as timer
 from datetime import timedelta
 
@@ -16,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def cross_validation_with_val_set(dataset, model, folds, epochs, batch_size,
                                   lr, lr_decay_factor, lr_decay_step_size,
-                                  weight_decay, logger=None):
+                                  weight_decay, debug):
 
     val_losses, accs, durations = [], [], []
     for fold, (train_idx, test_idx,
@@ -42,25 +47,19 @@ def cross_validation_with_val_set(dataset, model, folds, epochs, batch_size,
             torch.cuda.synchronize()
 
         for epoch in range(1, epochs + 1):
+            # Train
             start = timer()
             train_loss = train(model, optimizer, train_loader)
             end = timer()
             durations.append(timedelta(seconds=end-start))
-            #print(f'Time: {timedelta(seconds=end-start)}')
 
+            # Evaluation
             val_losses.append(eval_loss(model, val_loader))
             accs.append(eval_acc(model, test_loader))
-            eval_info = {
-                'fold': fold,
-                'epoch': epoch,
-                'train_loss': train_loss,
-                'val_loss': val_losses[-1],
-                'test_acc': accs[-1],
-            }
 
-            if logger is not None:
-                logger(eval_info)
-
+            if debug:
+                print(f'Fold: {fold}, epoch: {epoch}, train loss: {train_loss}, val loss: {val_losses[-1]}, test acc: {accs[-1]}, runtime: {durations[-1]}')
+            
             if epoch % lr_decay_step_size == 0:
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
@@ -77,7 +76,7 @@ def cross_validation_with_val_set(dataset, model, folds, epochs, batch_size,
     acc_mean = acc.mean().item()
     acc_std = acc.std().item()
     duration_mean = np.mean(durations)
-    print(f'Val Loss: {loss_mean:.4f}, Test Accuracy: {acc_mean:.3f} '
+    print(f'{model}; Val Loss: {loss_mean:.4f}, Test Accuracy: {acc_mean:.3f} '
           f'± {acc_std:.3f}, Duration: {duration_mean}')
 
     return loss_mean, acc_mean, acc_std
@@ -116,7 +115,7 @@ def train(model, optimizer, loader):
         optimizer.zero_grad()
         data = data.to(device)
         out = model(data)
-        loss = F.nll_loss(out, data.y.view(-1))
+        loss = F.cross_entropy(out, data.y.view(-1))
         loss.backward()
         total_loss += loss.item() * num_graphs(data)
         optimizer.step()
@@ -143,5 +142,5 @@ def eval_loss(model, loader):
         data = data.to(device)
         with torch.no_grad():
             out = model(data)
-        loss += F.nll_loss(out, data.y.view(-1), reduction='sum').item()
+        loss += F.cross_entropy(out, data.y.view(-1), reduction='sum').item()
     return loss / len(loader.dataset)

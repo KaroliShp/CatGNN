@@ -1,41 +1,38 @@
-from benchmarks.dataset import get_dataset
-from benchmarks.train_test import cross_validation_with_val_set
+from benchmarks.utils.train_semi_supervised import train_eval_loop
+from catgnn.datasets.planetoid import PlanetoidDataset
+from catgnn.datasets.pyg_supervised_dataset import get_TU_dataset
+from benchmarks.utils.pyg_train_supervised import cross_validation_with_val_set
 from benchmarks.models.supervised.gcn_models import GCN_2, PyG_GCN
 from benchmarks.models.supervised.gin_models import GIN_2, PyG_GIN, GIN0_2, PyG_GIN0
+from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, stringify_statistics
 
 
-def logger(info):
-    fold, epoch = info['fold'] + 1, info['epoch']
-    val_loss, test_acc = info['val_loss'], info['test_acc']
-    print(f'{fold:02d}/{epoch:03d}: Val Loss: {val_loss:.4f}, '
-          f'Test Accuracy: {test_acc:.3f}')
+def run_benchmark(name, model_nn, num_layers, num_hidden_units, 
+                  folds=10, batch_size=128, lr=0.01, weight_decay=0, 
+                  lr_decay_factor=0.5, lr_decay_step_size=50, num_epochs=100, 
+                  debug=False, **kwargs):
+    dataset = get_TU_dataset(name)
 
+    model = model_nn(dataset, num_layers, num_hidden_units, **kwargs)
 
-results = []
-def run_test(dataset_name, Net, num_layers, hidden):
-    print(f'--\n{dataset_name} - {Net.__name__}')
-    
-    dataset = get_dataset(dataset_name, sparse=True)
-    model = Net(dataset, num_layers, hidden)
-    loss, acc, std = cross_validation_with_val_set(
+    return cross_validation_with_val_set(
         dataset,
         model,
-        folds=10,
-        epochs=100,
-        batch_size=128,
-        lr=0.01,
-        lr_decay_factor=0.5,
-        lr_decay_step_size=50,
-        weight_decay=0,
-        logger=None,
+        folds=folds,
+        epochs=num_epochs,
+        batch_size=batch_size,
+        lr=lr,
+        lr_decay_factor=lr_decay_factor,
+        lr_decay_step_size=lr_decay_step_size,
+        weight_decay=weight_decay,
+        debug=debug
     )
-    print(f'\n--Loss: {loss}, acc: {acc}, std: {std}--\n')
+
+
+def run_paper_benchmarks(name, num_layers, num_hidden_units):
+    run_benchmark(name, GCN_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
+
 
 if __name__ == '__main__':
-    layers = [1, 2, 3, 4, 5]
-    hiddens = [16, 32, 64, 128]
-
-    #run_test('MUTAG', GCN_2, 1, 16)
-    #run_test('MUTAG', PyG_GCN, 1, 16)
-    run_test('MUTAG', GIN_2, 1, 16)
-    run_test('MUTAG', PyG_GIN, 1, 16)
+    run_paper_benchmarks('MUTAG', 2, 32)

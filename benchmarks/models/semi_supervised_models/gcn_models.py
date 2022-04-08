@@ -41,6 +41,9 @@ class GCN_1(torch.nn.Module):
             H = nn.functional.relu(self.layers[i+1](V, E, H))
         return self.layers[-1](V, E, H) # PyG uses log softmax here
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 class GCN_2(torch.nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dim=1, num_layers=1, factored=False, forwards=False):
@@ -73,6 +76,9 @@ class GCN_2(torch.nn.Module):
             H = nn.functional.relu(self.layers[i+1](V, E, H))
         return self.layers[-1](V, E, H) # PyG uses log softmax here
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 class PyG_GCN(torch.nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dim=1, num_layers=1):
@@ -95,9 +101,12 @@ class PyG_GCN(torch.nn.Module):
             H = nn.functional.relu(self.layers[i+1](H, E))
         return self.layers[-1](H, E) # PyG uses log softmax here
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 """
-Paper benchmarking
+Paper benchmarking (architecture choice from PyG)
 """
 
 class GCN_1_Paper(torch.nn.Module):
@@ -117,6 +126,9 @@ class GCN_1_Paper(torch.nn.Module):
         H = nn.functional.dropout(H, training=self.training)
         H = self.conv2(V, E, H)
         return H # PyG uses log softmax here
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
 class GCN_2_Paper(torch.nn.Module):
@@ -142,6 +154,9 @@ class GCN_2_Paper(torch.nn.Module):
         H = self.conv2(V, E, H)
         return H # PyG uses log softmax here
 
+    def __repr__(self):
+        return self.__class__.__name__
+
 
 class PyG_GCN_Paper(torch.nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -154,6 +169,9 @@ class PyG_GCN_Paper(torch.nn.Module):
         H = nn.functional.dropout(H, training=self.training)
         H = self.conv2(H, E)
         return H # PyG uses log softmax here
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
 if __name__ == '__main__':

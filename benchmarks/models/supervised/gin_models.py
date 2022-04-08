@@ -7,7 +7,7 @@ from catgnn.layers.gin.gin_mpnn_2 import GINLayer_MPNN_2
 
 
 """
-GIN
+GIN architecture from:
 https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/gin.py
 """
 
@@ -45,15 +45,15 @@ class GIN_2(torch.nn.Module):
         self.lin2.reset_parameters()
 
     def forward(self, data):
-        x, edge_index, batch = data.x, data.edge_index, data.batch
-        x = self.conv1(x, edge_index)
+        X, E, batch = data.x, data.edge_index, data.batch
+        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        X = self.conv1(V, E, X)
         for conv in self.convs:
-            x = conv(x, edge_index)
-        x = torch_geometric.nn.global_mean_pool(x, batch)
-        x = torch.nn.functional.relu(self.lin1(x))
-        x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+            X = conv(V, E, X)
+        X = torch_geometric.nn.global_mean_pool(X, batch)
+        X = torch.nn.functional.relu(self.lin1(X))
+        X = torch.nn.functional.dropout(X, p=0.5, training=self.training)
+        return self.lin2(X)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__
@@ -99,15 +99,14 @@ class PyG_GIN(torch.nn.Module):
         x = torch_geometric.nn.global_mean_pool(x, batch)
         x = torch.nn.functional.relu(self.lin1(x))
         x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+        return self.lin2(x)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__
 
 
 """
-GIN0
+GIN0 architecture from:
 https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/gin.py
 """
 
@@ -145,15 +144,15 @@ class GIN0_2(torch.nn.Module):
         self.lin2.reset_parameters()
 
     def forward(self, data):
-        x, edge_index, batch = data.x, data.edge_index, data.batch
-        x = self.conv1(x, edge_index)
+        X, E, batch = data.x, data.edge_index, data.batch
+        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        X = self.conv1(V, E, X)
         for conv in self.convs:
-            x = conv(x, edge_index)
-        x = torch_geometric.nn.global_mean_pool(x, batch)
-        x = torch.nn.functional.relu(self.lin1(x))
-        x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+            X = conv(V, E, X)
+        X = torch_geometric.nn.global_mean_pool(X, batch)
+        X = torch.nn.functional.relu(self.lin1(X))
+        X = torch.nn.functional.dropout(X, p=0.5, training=self.training)
+        return self.lin2(X)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__
@@ -199,8 +198,7 @@ class PyG_GIN0(torch.nn.Module):
         x = torch_geometric.nn.global_mean_pool(x, batch)
         x = torch.nn.functional.relu(self.lin1(x))
         x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+        return self.lin2(x)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__

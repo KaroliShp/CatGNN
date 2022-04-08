@@ -6,7 +6,7 @@ from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2
 
 
 """
-GCN
+GCN architecture from:
 https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/gcn.py
 """
 
@@ -29,16 +29,15 @@ class GCN_2(torch.nn.Module):
         self.lin2.reset_parameters()
 
     def forward(self, data):
-        x, edge_index, batch = data.x, data.edge_index, data.batch
-        v = torch.arange(0, x.shape[0], dtype=torch.int64)
-        x = torch.nn.functional.relu(self.conv1(v, edge_index, x))
+        X, E, batch = data.x, data.edge_index, data.batch
+        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        X = torch.nn.functional.relu(self.conv1(V, E, X))
         for conv in self.convs:
-            x = torch.nn.functional.relu(conv(v, edge_index, x))
-        x = torch_geometric.nn.global_mean_pool(x, batch)
-        x = torch.nn.functional.relu(self.lin1(x))
-        x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+            X = torch.nn.functional.relu(conv(V, E, X))
+        X = torch_geometric.nn.global_mean_pool(X, batch)
+        X = torch.nn.functional.relu(self.lin1(X))
+        X = torch.nn.functional.dropout(X, p=0.5, training=self.training)
+        return self.lin2(X)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__
@@ -69,8 +68,7 @@ class PyG_GCN(torch.nn.Module):
         x = torch_geometric.nn.global_mean_pool(x, batch)
         x = torch.nn.functional.relu(self.lin1(x))
         x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
-        return torch.nn.functional.log_softmax(x, dim=-1)
+        return self.lin2(x)  # Used to be log softmax
 
     def __repr__(self):
         return self.__class__.__name__
