@@ -30,9 +30,15 @@ def run_benchmark(name, model_nn, num_layers, num_hidden_units,
 
 
 def run_paper_benchmarks(name, num_layers, num_hidden_units):
+    run_benchmark(name, GIN0_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GIN0, num_layers, num_hidden_units)
+    """
+    run_benchmark(name, GIN_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GIN, num_layers, num_hidden_units)
     run_benchmark(name, GCN_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
+    """
 
 
 if __name__ == '__main__':
-    run_paper_benchmarks('MUTAG', 2, 32)
+    run_paper_benchmarks('MUTAG', 3, 64)

@@ -3,6 +3,7 @@ from catgnn.typing import *
 import torch
 from torch import nn
 import torch_scatter
+import torch_geometric
 
 
 class GINLayer_MPNN_2(BaseMPNNLayer_2):
@@ -30,15 +31,15 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         return kernel
 
     def define_pushforward(self, kernel):
-        def pushforward(V, E):
-            # Need to call preimage here
-            return kernel(E), self.t(E)
+        def pushforward(V):
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
         return pushforward
 
     def define_aggregator(self, pushforward):
-        def aggregator(V, E):
-            bags = pushforward(V,E)
-            aggregated = torch_scatter.scatter_add(bags[0].T, bags[1].repeat(bags[0].T.shape[0],1)).T
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0],1)).T
             return aggregated[V]
         return aggregator
 
@@ -46,5 +47,5 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         return self.mlp_update(((1+self.eps)*X) + output)
     
     def reset_parameters(self):
-        self.mlp_update.reset_parameters()
+        torch_geometric.nn.inits.reset(self.mlp_update)
         self.eps = nn.Parameter(torch.Tensor([self.eps_0]), requires_grad=self.train_eps)
