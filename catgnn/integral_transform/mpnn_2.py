@@ -164,3 +164,7 @@ class BaseMPNNLayer_2(nn.Module):
 
         # Update and return
         return self.update(X, aggregated_output)
+
+    """
+    Other methods (TODO)
+    """

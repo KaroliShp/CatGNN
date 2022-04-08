@@ -48,7 +48,14 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(output) # dont forget to fix it back after benchmark tests are rewritten
+        return output # dont forget to fix it back after benchmark tests are rewritten
+
+    """
+    Other methods (TODO)
+    """
+
+    def reset_parameters(self):
+        self.mlp_msg.reset_parameters()
 
 
 class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
