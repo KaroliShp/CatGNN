@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from benchmarks.pyg_train_semi_supervised import get_planetoid_dataset, run
+from benchmarks.utils.pyg_train_semi_supervised import get_planetoid_dataset, run
 
 from torch_geometric.nn import GCNConv
 from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2
