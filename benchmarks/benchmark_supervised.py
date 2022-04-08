@@ -10,7 +10,7 @@ from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, str
 def run_benchmark(name, model_nn, num_layers, num_hidden_units, 
                   folds=10, batch_size=128, lr=0.01, weight_decay=0, 
                   lr_decay_factor=0.5, lr_decay_step_size=50, num_epochs=100, 
-                  debug=False, **kwargs):
+                  debug=True, **kwargs):
     dataset = get_TU_dataset(name)
 
     model = model_nn(dataset, num_layers, num_hidden_units, **kwargs)
@@ -30,15 +30,17 @@ def run_benchmark(name, model_nn, num_layers, num_hidden_units,
 
 
 def run_paper_benchmarks(name, num_layers, num_hidden_units):
+    """
     run_benchmark(name, GIN0_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GIN0, num_layers, num_hidden_units)
     """
+    """
     run_benchmark(name, GIN_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GIN, num_layers, num_hidden_units)
-    run_benchmark(name, GCN_2, num_layers, num_hidden_units)
-    run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
     """
+    #run_benchmark(name, GCN_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
 
 
 if __name__ == '__main__':
-    run_paper_benchmarks('MUTAG', 3, 64)
+    run_paper_benchmarks('REDDIT-BINARY', 3, 64)
