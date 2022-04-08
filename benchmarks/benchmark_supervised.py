@@ -4,6 +4,7 @@ from catgnn.datasets.pyg_supervised_dataset import get_TU_dataset
 from benchmarks.utils.pyg_train_supervised import cross_validation_with_val_set
 from benchmarks.models.supervised.gcn_models import GCN_2, PyG_GCN
 from benchmarks.models.supervised.gin_models import GIN_2, PyG_GIN, GIN0_2, PyG_GIN0
+from benchmarks.models.supervised.sage_models import GraphSAGE_2, PyG_GraphSAGE
 from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, stringify_statistics
 
 
@@ -38,9 +39,14 @@ def run_paper_benchmarks(name, num_layers, num_hidden_units):
     run_benchmark(name, GIN_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GIN, num_layers, num_hidden_units)
     """
-    #run_benchmark(name, GCN_2, num_layers, num_hidden_units)
+    """
+    run_benchmark(name, GCN_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
+    """
+    run_benchmark(name, GraphSAGE_2, num_layers, num_hidden_units)
+    #run_benchmark(name, PyG_GraphSAGE, num_layers, num_hidden_units)
+    
 
 
 if __name__ == '__main__':
-    run_paper_benchmarks('REDDIT-BINARY', 3, 64)
+    run_paper_benchmarks('REDDIT-BINARY', 1, 16)

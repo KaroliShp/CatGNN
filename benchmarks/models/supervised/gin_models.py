@@ -1,15 +1,14 @@
+"""
+GIN architecture from:
+https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/gin.py
+"""
+
 import torch
 from torch.nn import BatchNorm1d as BN
 from torch.nn import Linear, ReLU, Sequential
 import torch_geometric.nn
 
 from catgnn.layers.gin.gin_mpnn_2 import GINLayer_MPNN_2
-
-
-"""
-GIN architecture from:
-https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/gin.py
-"""
 
 
 class GIN_2(torch.nn.Module):
