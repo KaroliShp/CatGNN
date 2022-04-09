@@ -4,6 +4,7 @@ from catgnn.datasets.planetoid import PlanetoidDataset
 import torch_geometric
 from benchmarks.models.semi_supervised_models.gcn_models import GCN_1, GCN_2, PyG_GCN, GCN_1_Paper, GCN_2_Paper, PyG_GCN_Paper
 from benchmarks.models.semi_supervised_models.sgc_models import SGC_2_Paper, PyG_SGC_Paper
+from benchmarks.models.semi_supervised_models.gat_models import GAT_2_Paper, PyG_GAT_Paper
 import numpy as np
 from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, stringify_statistics
 
@@ -91,6 +92,7 @@ def run_paper_benchmarks(name='Cora', repeat=2):
     print(stringify_statistics(experiment_8, train_res_8, val_res_8, test_res_8, runtime_res_8))
     """
 
+    """
     experiment_9 = 'Cora CatGNN SGC (2), public split'
     train_res_9, val_res_9, test_res_9, runtime_res_9 = repeat_benchmark(repeat, run_benchmark, experiment_9, name, SGC_2_Paper, K=3)
 
@@ -100,6 +102,29 @@ def run_paper_benchmarks(name='Cora', repeat=2):
     print('')
     print(stringify_statistics(experiment_9, train_res_9, val_res_9, test_res_9, runtime_res_9))
     print(stringify_statistics(experiment_10, train_res_10, val_res_10, test_res_10, runtime_res_10))
+    """
+    
+    experiment_11 = 'Cora CatGNN GAT (2), public split'
+    train_res_11, val_res_11, test_res_11, runtime_res_11 = repeat_benchmark(repeat, run_benchmark, experiment_11, name, SGC_2_Paper, K=3)
+
+    experiment_12 = 'Cora PyG GAT, public split'
+    train_res_12, val_res_12, test_res_12, runtime_res_12 = repeat_benchmark(repeat, run_benchmark, experiment_12, name, PyG_SGC_Paper, K=3)
+
+    print('')
+    print(stringify_statistics(experiment_11, train_res_11, val_res_11, test_res_11, runtime_res_11))
+    print(stringify_statistics(experiment_12, train_res_12, val_res_12, test_res_12, runtime_res_12))
+
+
+def run_paper_benchmarks_gat(name='Cora', repeat=2):    
+    experiment_11 = 'Cora CatGNN GAT (2), public split'
+    train_res_11, val_res_11, test_res_11, runtime_res_11 = repeat_benchmark(repeat, run_benchmark, experiment_11, name, GAT_2_Paper)
+
+    experiment_12 = 'Cora PyG GAT, public split'
+    train_res_12, val_res_12, test_res_12, runtime_res_12 = repeat_benchmark(repeat, run_benchmark, experiment_12, name, PyG_GAT_Paper)
+
+    print('')
+    print(stringify_statistics(experiment_11, train_res_11, val_res_11, test_res_11, runtime_res_11))
+    print(stringify_statistics(experiment_12, train_res_12, val_res_12, test_res_12, runtime_res_12))
 
 
 def run_layer_benchmarks(name='Cora', num_layers=1, repeat=2):
@@ -136,6 +161,8 @@ if __name__ == '__main__':
     #run_layer_benchmarks(num_layers=1)  # Cora
     #run_layer_benchmarks(num_layers=2)  # Cora
     #run_layer_benchmarks(num_layers=3)  # Cora
-    run_layer_benchmarks(num_layers=4)  # Cora
+    #run_layer_benchmarks(num_layers=4)  # Cora
     #run_layer_benchmarks(name='CiteSeer')
     #run_layer_benchmarks(name='PubMed')
+
+    run_paper_benchmarks_gat()

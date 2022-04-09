@@ -25,7 +25,7 @@ class SGC_2(nn.Module):
 
 class PyG_SGC(nn.Module):
 
-    def __init__(self, input_dim, output_dim, K=K):
+    def __init__(self, input_dim, output_dim, K=2):
         super(PyG_SGC, self).__init__()
         self.gcn_layer = torch_geometric.nn.conv.SGConv(input_dim, output_dim, K=K, cached=False, add_self_loops=True)
 
