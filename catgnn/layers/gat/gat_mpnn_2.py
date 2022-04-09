@@ -7,13 +7,18 @@ import torch_scatter
 
 class GATLayer_MPNN_2(BaseMPNNLayer_2):
 
-    def __init__(self, in_dim: int, out_dim: int):
+    def __init__(self, in_dim: int, out_dim: int, heads: int = 1):
         # Start with only 1 attention head for simplicity
         super().__init__()
 
-        self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
-
-        self.attention_a = nn.Linear(in_dim*2, out_dim)
+        self.heads = heads
+        self.mlp_msgs = []
+        self.attention_as = []
+        for _ in range(heads):
+            self.mlp_msgs.append(nn.Linear(in_dim, out_dim))
+            self.attention_as.append(nn.Linear(in_dim*2, out_dim))
+        self.mlp_msgs = nn.ModuleList(self.mlp_msgs)
+        self.attention_as = nn.ModuleList(self.attention_as)
 
         self.mlp_update = nn.LeakyReLU(negative_slope=0.02) # \phi
     
@@ -41,41 +46,20 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
             # Get features of both senders and receivers
             r_sender, r_receiver = kernel_factor_1(E)
 
-            """
-            print('Shapes:')
-            print(r_sender)
-            print(r_sender.shape)
-            print(r_receiver)
-            print(r_receiver.shape)
-            print('')
-            """
-
-            # Attention: calculate a_{i,j}
-            concatenated_features = torch.cat((r_sender, r_receiver),-1) # Note that we concatenate on the last dimension (-1) (rows)
-            #print(concatenated_features.shape)
-            attention_coefficients = torch.nn.functional.leaky_relu(self.attention_a(concatenated_features)).exp() # e_{i,j}
-            """
-            print(attention_coefficients)
-            print(attention_coefficients.shape)
-            """
-            softmax_denominator = torch_scatter.scatter_add(attention_coefficients, self.t(E), dim=0)  # Must be same shape as X
-            """
-            print(softmax_denominator)
-            print(softmax_denominator.shape)
-            print('\nChosen demoninators:')
-            print(softmax_denominator[self.t(E)])
-            print(softmax_denominator[self.t(E)].shape)
-            print(5/0)
-            """
-            softmaxed_coefficients = attention_coefficients / softmax_denominator[self.t(E)]
-            """
-            print(softmaxed_coefficients.shape)
-            print('')
-            print(5/0)
-            """
+            updated_features = None
+            for h in range(self.heads):
+                # Attention: calculate a_{i,j}
+                concatenated_features = torch.cat((r_sender, r_receiver),-1) # Note that we concatenate on the last dimension (-1) (rows)
+                attention_coefficients = torch.nn.functional.leaky_relu(self.attention_as[h](concatenated_features)).exp() # e_{i,j}
+                softmax_denominator = torch_scatter.scatter_add(attention_coefficients, self.t(E), dim=0)  # Must be same shape as X
+                softmaxed_coefficients = attention_coefficients / softmax_denominator[self.t(E)]
+                if updated_features is None:
+                    updated_features = softmaxed_coefficients * self.mlp_msgs[h](r_sender)
+                else:
+                    updated_features = torch.cat((updated_features, softmaxed_coefficients * self.mlp_msgs[h](r_sender)), dim=-1)
 
             # Perform kernel transform
-            return softmaxed_coefficients * self.mlp_msg(r_sender)
+            return updated_features
         return kernel_factor_2
     
     def define_pushforward(self, kernel):
@@ -105,5 +89,5 @@ if __name__ == '__main__':
     # Feature matrix - usual representation
     X = torch.tensor([[0,0], [0,1], [1,0], [1,1]], dtype=torch.float)
 
-    example_layer = GATLayer_MPNN_2(2,2)
+    example_layer = GATLayer_MPNN_2(2,2, heads=8)
     print(example_layer(V, E, X))

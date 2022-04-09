@@ -11,13 +11,13 @@ Paper benchmarking (architecture choice from PyG)
 
 
 class GAT_2_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, forwards=False):
+    def __init__(self, input_dim, output_dim, heads=8, forwards=False):
         super().__init__()
         if forwards:
             raise NotImplementedError
         else:
-            self.conv1 = GATLayer_MPNN_2(input_dim, 8)
-            self.conv2 = GATLayer_MPNN_2(8, output_dim)
+            self.conv1 = GATLayer_MPNN_2(input_dim, 8, heads=heads)
+            self.conv2 = GATLayer_MPNN_2(8 * heads, output_dim, heads=1)
 
     def forward(self, V, E, X):
         H = nn.functional.dropout(X, p=0.6, training=self.training)
@@ -31,10 +31,10 @@ class GAT_2_Paper(torch.nn.Module):
 
 
 class PyG_GAT_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, heads=8):
         super().__init__()
-        self.conv1 = torch_geometric.nn.conv.GATConv(input_dim, 8, heads=1, add_self_loops=True)
-        self.conv2 = torch_geometric.nn.conv.GATConv(8, output_dim, heads=1, concat=False, add_self_loops=True)
+        self.conv1 = torch_geometric.nn.conv.GATConv(input_dim, 8, heads=heads, add_self_loops=True)
+        self.conv2 = torch_geometric.nn.conv.GATConv(8 * heads, output_dim, heads=1, concat=False, add_self_loops=True)
 
     def forward(self, V, E, X):        
         x = nn.functional.dropout(X, p=0.6, training=self.training)

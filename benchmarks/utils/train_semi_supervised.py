@@ -47,15 +47,13 @@ def train_eval_loop(model, V, E, X, train_y, train_mask,
         train_loss = train(V, E, X, train_y, train_mask, model, optimiser)
         end = timer()
         runtimes.append(timedelta(seconds=end-start))
-        if debug:
-            print(f'Time: {runtimes[-1]}')
 
         train_acc = evaluate(V, E, X, train_y, train_mask, model)
         valid_acc = evaluate(V, E, X, valid_y, valid_mask, model)
         test_acc = evaluate(V, E, X, test_y, test_mask, model)
 
         if (epoch % 10 == 0 or epoch == num_epochs-1) and debug:
-            print(f"Epoch {epoch} with train loss: {train_loss:.3f} train accuracy: {train_acc:.3f} validation accuracy: {valid_acc:.3f}, test accuracy: {test_acc:.3f}")
+            print(f"Epoch {epoch} with train loss: {train_loss:.3f} train accuracy: {train_acc:.3f} validation accuracy: {valid_acc:.3f}, test accuracy: {test_acc:.3f}, time: {runtimes[-1]}")
         epoch_stats = {'train_acc': train_acc, 'val_acc': valid_acc, 'test_acc': test_acc, 'epoch': epoch}
         training_stats = update_stats(training_stats, epoch_stats)
     

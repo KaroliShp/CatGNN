@@ -10,7 +10,7 @@ from benchmarks.utils.analyse_performance import analyse_repeated_benchmark, str
 
 
 def run_benchmark(dataset_name, model_nn, split='public', normalize=True,
-                  lr=0.01, weight_decay=5e-4, num_epochs=100, debug=False, 
+                  lr=0.01, weight_decay=5e-4, num_epochs=200, debug=True, 
                   sender_to_receiver=True, **kwargs):
     dataset = PlanetoidDataset(dataset_name, split, normalize)
 
