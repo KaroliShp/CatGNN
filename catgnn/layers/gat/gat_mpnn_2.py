@@ -27,6 +27,8 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
         # GAT paper: " In all our experiments, these will be exactly the first-order neighbors of i (including i)"
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
+        # TODO: add dropout within the layer?
+
         # Do integral transform
         return self.pipeline_backwards(V, E, X, kernel_factor=True)
     
