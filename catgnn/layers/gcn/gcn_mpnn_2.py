@@ -13,7 +13,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
         self.mlp_update = nn.LeakyReLU() # \phi
     
-    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+    def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 
@@ -119,7 +119,7 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
         self.mlp_msg = nn.Linear(in_dim, out_dim) # \psi
         self.mlp_update = nn.LeakyReLU() # \phi
     
-    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+    def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
         E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
 

@@ -84,6 +84,14 @@ class BaseMPNNLayer_2(nn.Module):
 
     def update(self, X, output):
         raise NotImplementedError
+    
+    """
+    Maybe this is better?
+    """
+    def define_update(self, aggregator):
+        def update(self, V, X):
+            raise NotImplementedError
+        return update
 
     def pipeline_backwards(self, V, E, X, kernel_factor=False):
         # Set the span diagram (preimage) and feature function f : V -> R

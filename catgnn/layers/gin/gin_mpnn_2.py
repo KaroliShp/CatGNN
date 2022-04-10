@@ -16,7 +16,7 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         self.eps = nn.Parameter(torch.Tensor([eps]), requires_grad=train_eps)
         self.mlp_update = mlp_update
     
-    def forward(self, V: torch.Tensor, E: torch.Tensor, X: torch.Tensor) -> torch.Tensor:
+    def forward(self, V, E, X):
         # Do integral transform
         return self.pipeline_backwards(V, E, X)
 

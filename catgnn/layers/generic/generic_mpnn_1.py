@@ -13,20 +13,20 @@ class GenericMPNNLayer_1(BaseMPNNLayer_1):
         out = self.pipeline_backwards(V, E, X)
         return out
 
-    def define_pullback(self, f: Type_V_R) -> Type_E_R:
-        def pullback(e: Type_E) -> Type_R:
+    def define_pullback(self, f):
+        def pullback(e):
             return f(self.s(e))
         
         return pullback
     
-    def define_kernel(self, pullback: Type_E_R) -> Type_E_R:
-        def kernel_transformation(e: Type_E) -> Type_R:
+    def define_kernel(self, pullback):
+        def kernel_transformation(e):
             return pullback(e)
         
         return kernel_transformation
     
-    def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
-        def pushforward(v: Type_V) -> Type_NR:
+    def define_pushforward(self, kernel_transformation):
+        def pushforward(v):
             pE = self.t_1(v)
 
             # Now we need to apply edge_messages function for each element of pE
@@ -37,8 +37,8 @@ class GenericMPNNLayer_1(BaseMPNNLayer_1):
         
         return pushforward
 
-    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
-        def aggregator(v: Type_V) -> Type_R:
+    def define_aggregator(self, pushforward):
+        def aggregator(v):
             total = 0
             for val in pushforward(v):
                 total += val
@@ -48,114 +48,6 @@ class GenericMPNNLayer_1(BaseMPNNLayer_1):
 
     def update(self, X, output):
         return output
-
-
-class GenericFactoredMPNNLayer_1(BaseMPNNLayer_1):
-
-    def __init__(self):
-        super().__init__()
-    
-    def forward(self, V: List[Type_V], E: List[Type_E], X: Type_R) -> Type_R:
-        out = self.pipeline_backwards(V, E, X, kernel_factor=True)
-        return out
-
-    def define_pullback(self, f: Type_V_R) -> Type_E_R:
-        def pullback(e: Type_E) -> Type_R:
-            return f(self.s(e))
-        
-        return pullback
-    
-    def define_kernel_factor_1(self, pullback):
-        """
-        Inputs:
-        E -> R
-
-        Outputs:
-        (E,E) -> (R,R)
-        """
-        def kernel_factor_1(e, e_star):
-            """
-            Product arrow
-            Inputs:
-            (E, E)
-            
-            Outputs:
-            (R, R)
-            """
-            return pullback(e), pullback(e_star)
-        return kernel_factor_1
-
-    def define_kernel_factor_2(self, kernel_factor_1):
-        """
-        Inputs:
-        (E,E) -> (R,R)
-
-        Outputs:
-        E -> R
-        """
-        def kernel_factor_2(e):
-            """
-            Inputs:
-            E
-            
-            Outputs:
-            R
-            """
-            r, r_star = kernel_factor_1(e, self.get_opposite_edge(e))
-            # Ignore receiver features (r_star)
-            return r
-        return kernel_factor_2
-    
-    def define_pushforward(self, kernel_transformation: Type_E_R) -> Type_V_NR:
-        def pushforward(v: Type_V) -> Type_NR:
-            pE = self.t_1(v)
-
-            # Now we need to apply edge_messages function for each element of pE
-            bag_of_messages = []
-            for e in pE:
-                bag_of_messages.append(kernel_transformation(e))
-            return bag_of_messages
-        
-        return pushforward
-
-    def define_aggregator(self, pushforward: Type_V_NR) -> Type_V_R:
-        def aggregator(v: Type_V) -> Type_R:
-            total = 0
-            for val in pushforward(v):
-                total += val
-            return total
-        
-        return aggregator
-
-    def update(self, X, output):
-        return output
-
-
-"""
-class GenericMPNNLayer_1_Forwards(BaseMPNNLayer_1):
-
-    def __init__(self):
-        super().__init__()
-    
-    def forward(self, V, E, X):
-        out = self.pipeline_forwards(V, E, X)
-        return out
-
-    def pullback(self, e, f):
-        return f(self.s(e))
-
-    def kernel_transformation(self, e, pulledback_features):
-        return pulledback_features
-
-    def pushforward(self, v, edge_messages):
-        raise NotImplementedError
-    
-    def aggregator(self, v, bags_of_values):
-        raise NotImplementedError
-
-    def update(self, X, output):
-        raise NotImplementedError
-"""
 
 
 if __name__ == '__main__':

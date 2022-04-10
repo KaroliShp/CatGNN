@@ -1,32 +1,31 @@
 from catgnn.integral_transform.mpnn_1 import BaseMPNNLayer_1
 from catgnn.typing import *
+import numpy as np
 import torch
-from torch import nn
-import torch_geometric
 
- 
-class GINLayer_MPNN_1(BaseMPNNLayer_1):
 
-    def __init__(self, mlp_update, eps: float=0.0, train_eps: bool=True):
+class SAGELayer_MPNN_1(BaseMPNNLayer_1):
+
+    def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
-        self.eps_0 = eps
-        self.train_eps = train_eps
-        self.eps = nn.Parameter(torch.Tensor([eps]), requires_grad=train_eps)
-        self.mlp_update = mlp_update
+        self.mlp_update_1 = torch.nn.Linear(in_dim, out_dim)
+        self.mlp_update_2 = torch.nn.Linear(in_dim, out_dim)
     
     def forward(self, V, E, X):
-        # Do integral transform
-        return self.pipeline_backwards(V, E, X)
+        out = self.pipeline_backwards(V, E, X)
+        return out
 
     def define_pullback(self, f):
         def pullback(e):
             return f(self.s(e))
+        
         return pullback
     
     def define_kernel(self, pullback):
         def kernel_transformation(e):
             return pullback(e)
+        
         return kernel_transformation
     
     def define_pushforward(self, kernel_transformation):
@@ -38,23 +37,28 @@ class GINLayer_MPNN_1(BaseMPNNLayer_1):
             for e in pE:
                 bag_of_messages.append(kernel_transformation(e))
             return bag_of_messages
+        
         return pushforward
 
     def define_aggregator(self, pushforward):
         def aggregator(v):
-            # Sum aggregator
             total = 0
             for val in pushforward(v):
                 total += val
             return total
+        
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(((1+self.eps)*X) + output)
+        return self.mlp_update_2(X) + self.mlp_update_1(output)
+
+    """
+    Other methods (TODO)
+    """
 
     def reset_parameters(self):
-        torch_geometric.nn.inits.reset(self.mlp_update)
-        self.eps = nn.Parameter(torch.Tensor([self.eps_0]), requires_grad=self.train_eps)
+        self.mlp_update_1.reset_parameters()
+        self.mlp_update_2.reset_parameters()
 
 
 if __name__ == '__main__':
@@ -68,7 +72,7 @@ if __name__ == '__main__':
                       (2,3), (3,2) ], dtype=torch.int64).T
 
     # Feature matrix - usual representation
-    X = torch.tensor([[0,0], [0,1], [1,0], [1,1]])
+    X = torch.tensor([[0,0], [0,1], [1,0], [1,1]], dtype=torch.float)
 
-    example_layer = GINLayer_MPNN_1(X.shape[-1], 7, 1)
+    example_layer = SAGELayer_MPNN_1(2, 2)
     print(example_layer(V, E, X))
