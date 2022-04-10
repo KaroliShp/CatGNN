@@ -94,7 +94,10 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def transform_backwards(self, V, E, X, kernel_factor=False):
+    def transform_backwards(self, V, E, X, kernel_factor=False, validate_input=True):
+        if validate_input:
+            self._validate_input(V, E, X)
+
         # Set the span diagram (preimage) and feature function f : V -> R
         self.X = X
         self.E = E
@@ -113,7 +116,7 @@ class BaseMPNNLayer_2(nn.Module):
         pushforward = self.define_pushforward(kernel_transformation)  # V -> N[R]
         aggregator = self.define_aggregator(pushforward)  # V -> R
 
-        # Apply the transform to each node in the graph
+        # Apply the transform to each node in the graph, then finish with update step
         return self.update(X, aggregator(V))
 
     """
@@ -141,7 +144,10 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def transform_forwards(self, V, E, X, kernel_factor=False):
+    def transform_forwards(self, V, E, X, kernel_factor=False, validate_input=True):
+        if validate_input:
+            self._validate_input(V, E, X)
+        
         # Set the span diagram (preimage) and feature function f : V -> R
         self.X = X
 
@@ -175,5 +181,26 @@ class BaseMPNNLayer_2(nn.Module):
         return self.update(X, aggregated_output)
 
     """
-    Other methods (TODO)
+    Other utils
     """
+
+    def _validate_input(self, V, E, X):
+        # Firstly assert input types
+        assert type(V) == torch.Tensor, f'V must be a torch.Tensor, not {type(V)}'
+        assert type(E) == torch.Tensor, f'E must be a torch.Tensor, not {type(E)}'
+        assert type(X) == torch.Tensor, f'X must be a torch.Tensor, not {type(X)}'
+
+        # Then assert tensor properties
+        assert V.dtype == torch.int64, f'V.dtype must be torch.int64, not {V.dtype}'
+        assert len(V.shape) == 1, f'V must be a 1D tensor'
+        assert V.shape[0] != 0, f'V cannot be empty'
+
+        assert E.dtype == torch.int64, f'E.dtype must be torch.int64, not {E.dtype}'
+        assert len(E.shape) == 2, f'V must be a 2D tensor'
+        assert E.shape[0] == 2, f'E must have two rows/must have shape of (2,-1)'
+        assert E.shape[1] != 0, f'E cannot be empty'
+
+        assert X.shape[0] != 0, f'X cannot be empty'
+
+        # Now assert that the shapes of V, E and X together make sense
+        assert V.shape[0] == X.shape[0], f'V must have the same shape as X'
