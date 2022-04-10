@@ -6,7 +6,6 @@ https://github.com/pyg-team/pytorch_geometric/blob/master/benchmark/kernel/datas
 import os.path as osp
 
 import torch
-
 import torch_geometric
 
 
@@ -23,9 +22,9 @@ class NormalizedDegree(object):
 
 
 def get_TU_dataset(name, cleaned=False):
-    assert name in ['MUTAG', 'PROTEINS', 'REDDIT-BINARY']
+    assert name in ["MUTAG", "PROTEINS", "REDDIT-BINARY"]
 
-    path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', name)
+    path = osp.join(osp.dirname(osp.realpath(__file__)), "..", "data", name)
     dataset = torch_geometric.datasets.TUDataset(path, name, cleaned=cleaned)
     dataset.data.edge_attr = None
 

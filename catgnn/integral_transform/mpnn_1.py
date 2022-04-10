@@ -3,7 +3,6 @@ from torch import nn
 
 
 class BaseMPNNLayer_1(nn.Module):
-
     def __init__(self):
         super(BaseMPNNLayer_1, self).__init__()
 
@@ -12,7 +11,7 @@ class BaseMPNNLayer_1(nn.Module):
     """
 
     def _add_edge_indices(self, E):
-        self.E_indexed = torch.cat((E, torch.arange(0, E.shape[1]).view(1,-1)))
+        self.E_indexed = torch.cat((E, torch.arange(0, E.shape[1]).view(1, -1)))
 
     def s(self, e):
         return self.E_indexed[0][e[2]]
@@ -30,7 +29,7 @@ class BaseMPNNLayer_1(nn.Module):
 
         # Fill in all preimages with receiver and edge index
         for i in range(0, self.E_indexed.shape[1]):
-            self._preimages[self.E_indexed[1][i]].append(self.E_indexed[:,i])
+            self._preimages[self.E_indexed[1][i]].append(self.E_indexed[:, i])
 
     def t_1(self, v):
         return self._preimages[v]
@@ -45,21 +44,25 @@ class BaseMPNNLayer_1(nn.Module):
     def define_pullback(self, f):
         def pullback(e):
             raise NotImplementedError
+
         return pullback
 
     def define_kernel(self, pullback):
         def kernel_transformation(e):
             raise NotImplementedError
+
         return kernel_transformation
 
     def define_pushforward(self, kernel_transformation):
         def pushforward(v):
             raise NotImplementedError
+
         return pushforward
-    
+
     def define_aggregator(self, pushforward):
         def aggregator(v):
             raise NotImplementedError
+
         return aggregator
 
     def update(self, X, output):
@@ -72,21 +75,21 @@ class BaseMPNNLayer_1(nn.Module):
         self.X = X
 
         # Prepare transform
-        pullback = self.define_pullback(self.f) # E -> R
+        pullback = self.define_pullback(self.f)  # E -> R
         if kernel_factor:
             # Factoring kernel for MPNN_1 is not supported (no point because it is already slow)
             raise NotImplementedError
         else:
-            kernel_transformation = self.define_kernel(pullback) # E -> R
-        pushforward = self.define_pushforward(kernel_transformation) # V -> N[R]
-        aggregator = self.define_aggregator(pushforward) # V -> R
+            kernel_transformation = self.define_kernel(pullback)  # E -> R
+        pushforward = self.define_pushforward(kernel_transformation)  # V -> N[R]
+        aggregator = self.define_aggregator(pushforward)  # V -> R
 
         # Apply the transform to each node in the graph
         updated_features = torch.Tensor()
         for v in V:
-            updated_features = torch.hstack((updated_features,aggregator(v)))
+            updated_features = torch.hstack((updated_features, aggregator(v)))
 
-        return self.update(X, updated_features.view(X.shape[0],-1))
+        return self.update(X, updated_features.view(X.shape[0], -1))
 
     """
     Integral transform primitives (backwards)

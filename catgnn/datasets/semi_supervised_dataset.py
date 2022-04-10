@@ -1,5 +1,4 @@
 class SemiSupervisedDataset:
-
     def __init__(self):
         super(SemiSupervisedDataset, self).__init__()
 
@@ -11,7 +10,7 @@ class SemiSupervisedDataset:
 
     def get_features(self):
         raise NotImplementedError
-    
+
     def get_edges(self, sender_to_receiver=True):
         raise NotImplementedError
 

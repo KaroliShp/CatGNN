@@ -21,7 +21,9 @@ class GIN_2(torch.nn.Module):
                 Linear(hidden, hidden),
                 ReLU(),
                 BN(hidden),
-            ), train_eps=True)
+            ),
+            train_eps=True,
+        )
         self.convs = torch.nn.ModuleList()
         for i in range(num_layers - 1):
             self.convs.append(
@@ -32,7 +34,10 @@ class GIN_2(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ), train_eps=True))
+                    ),
+                    train_eps=True,
+                )
+            )
         self.lin1 = Linear(hidden, hidden)
         self.lin2 = Linear(hidden, dataset.num_classes)
 
@@ -45,7 +50,7 @@ class GIN_2(torch.nn.Module):
 
     def forward(self, data):
         X, E, batch = data.x, data.edge_index, data.batch
-        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, X.shape[0], dtype=torch.int64)  # Create vertices
         X = self.conv1(V, E, X)
         for conv in self.convs:
             X = conv(V, E, X)
@@ -68,7 +73,9 @@ class PyG_GIN(torch.nn.Module):
                 Linear(hidden, hidden),
                 ReLU(),
                 BN(hidden),
-            ), train_eps=True)
+            ),
+            train_eps=True,
+        )
         self.convs = torch.nn.ModuleList()
         for i in range(num_layers - 1):
             self.convs.append(
@@ -79,7 +86,10 @@ class PyG_GIN(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ), train_eps=True))
+                    ),
+                    train_eps=True,
+                )
+            )
         self.lin1 = Linear(hidden, hidden)
         self.lin2 = Linear(hidden, dataset.num_classes)
 
@@ -120,7 +130,9 @@ class GIN0_2(torch.nn.Module):
                 Linear(hidden, hidden),
                 ReLU(),
                 BN(hidden),
-            ), train_eps=False)
+            ),
+            train_eps=False,
+        )
         self.convs = torch.nn.ModuleList()
         for i in range(num_layers - 1):
             self.convs.append(
@@ -131,7 +143,10 @@ class GIN0_2(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ), train_eps=False))
+                    ),
+                    train_eps=False,
+                )
+            )
         self.lin1 = Linear(hidden, hidden)
         self.lin2 = Linear(hidden, dataset.num_classes)
 
@@ -144,7 +159,7 @@ class GIN0_2(torch.nn.Module):
 
     def forward(self, data):
         X, E, batch = data.x, data.edge_index, data.batch
-        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, X.shape[0], dtype=torch.int64)  # Create vertices
         X = self.conv1(V, E, X)
         for conv in self.convs:
             X = conv(V, E, X)
@@ -167,7 +182,9 @@ class PyG_GIN0(torch.nn.Module):
                 Linear(hidden, hidden),
                 ReLU(),
                 BN(hidden),
-            ), train_eps=False)
+            ),
+            train_eps=False,
+        )
         self.convs = torch.nn.ModuleList()
         for i in range(num_layers - 1):
             self.convs.append(
@@ -178,7 +195,10 @@ class PyG_GIN0(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ), train_eps=False))
+                    ),
+                    train_eps=False,
+                )
+            )
         self.lin1 = Linear(hidden, hidden)
         self.lin2 = Linear(hidden, dataset.num_classes)
 

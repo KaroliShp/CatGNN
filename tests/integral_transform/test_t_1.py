@@ -9,74 +9,62 @@ MPNN_1
 """
 
 
-@pytest.mark.parametrize('V,V_chosen,E,expected_preimages', [
-    (
-        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
-        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        [
-            [ 
-                torch.tensor([1, 0, 1], dtype=torch.int64) 
+@pytest.mark.parametrize(
+    "V,V_chosen,E,expected_preimages",
+    [
+        (
+            torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+            torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            [
+                [torch.tensor([1, 0, 1], dtype=torch.int64)],
+                [
+                    torch.tensor([0, 1, 0], dtype=torch.int64),
+                    torch.tensor([2, 1, 3], dtype=torch.int64),
+                ],
+                [
+                    torch.tensor([1, 2, 2], dtype=torch.int64),
+                    torch.tensor([3, 2, 5], dtype=torch.int64),
+                ],
+                [torch.tensor([2, 3, 4], dtype=torch.int64)],
             ],
-            [ 
-                torch.tensor([0, 1, 0], dtype=torch.int64),
-                torch.tensor([2, 1, 3], dtype=torch.int64) 
+        ),
+        (
+            torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+            torch.tensor([0, 2, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            [
+                [torch.tensor([1, 0, 1], dtype=torch.int64)],
+                [
+                    torch.tensor([0, 1, 0], dtype=torch.int64),
+                    torch.tensor([2, 1, 3], dtype=torch.int64),
+                ],
+                [
+                    torch.tensor([1, 2, 2], dtype=torch.int64),
+                    torch.tensor([3, 2, 5], dtype=torch.int64),
+                ],
+                [torch.tensor([2, 3, 4], dtype=torch.int64)],
             ],
-            [ 
-                torch.tensor([1, 2, 2], dtype=torch.int64),
-                torch.tensor([3, 2, 5], dtype=torch.int64) 
+        ),
+        (
+            torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+            torch.tensor([0, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            [
+                [torch.tensor([1, 0, 1], dtype=torch.int64)],
+                [
+                    torch.tensor([0, 1, 0], dtype=torch.int64),
+                    torch.tensor([2, 1, 3], dtype=torch.int64),
+                ],
+                [
+                    torch.tensor([1, 2, 2], dtype=torch.int64),
+                    torch.tensor([3, 2, 5], dtype=torch.int64),
+                ],
+                [torch.tensor([2, 3, 4], dtype=torch.int64)],
             ],
-            [ 
-                torch.tensor([2, 3, 4], dtype=torch.int64) 
-            ],
-        ]
-    ),
-    (
-        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
-        torch.tensor([0, 2, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        [
-            [ 
-                torch.tensor([1, 0, 1], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([0, 1, 0], dtype=torch.int64),
-                torch.tensor([2, 1, 3], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([1, 2, 2], dtype=torch.int64),
-                torch.tensor([3, 2, 5], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([2, 3, 4], dtype=torch.int64) 
-            ],
-        ]
-    ),
-    (
-        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
-        torch.tensor([0, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        [
-            [ 
-                torch.tensor([1, 0, 1], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([0, 1, 0], dtype=torch.int64),
-                torch.tensor([2, 1, 3], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([1, 2, 2], dtype=torch.int64),
-                torch.tensor([3, 2, 5], dtype=torch.int64) 
-            ],
-            [ 
-                torch.tensor([2, 3, 4], dtype=torch.int64) 
-            ],
-        ]
-    ),
-])
+        ),
+    ],
+)
 def test_inverse_t_mpnn_1(V, V_chosen, E, expected_preimages):
     base_layer = BaseMPNNLayer_1()
     base_layer._add_edge_indices(E)
@@ -94,32 +82,29 @@ MPNN_2
 """
 
 
-@pytest.mark.parametrize('V,E,expected_E,expected_indices', [
-    (
-        torch.tensor([0, 1, 2, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        torch.tensor([1, 0, 2, 1, 3, 2], dtype=torch.int64),
-    ),
-    (
-        torch.tensor([0, 2, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        torch.tensor([[1, 1, 2, 3],
-                      [0, 2, 3, 2]], dtype=torch.int64),
-        torch.tensor([0, 2, 3, 2], dtype=torch.int64),
-    ),
-    (
-        torch.tensor([0, 3], dtype=torch.int64),
-        torch.tensor([[0, 1, 1, 2, 2, 3],
-                      [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
-        torch.tensor([[1, 2],
-                      [0, 3]], dtype=torch.int64),
-        torch.tensor([0, 3], dtype=torch.int64),
-    ),
-])
+@pytest.mark.parametrize(
+    "V,E,expected_E,expected_indices",
+    [
+        (
+            torch.tensor([0, 1, 2, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            torch.tensor([1, 0, 2, 1, 3, 2], dtype=torch.int64),
+        ),
+        (
+            torch.tensor([0, 2, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            torch.tensor([[1, 1, 2, 3], [0, 2, 3, 2]], dtype=torch.int64),
+            torch.tensor([0, 2, 3, 2], dtype=torch.int64),
+        ),
+        (
+            torch.tensor([0, 3], dtype=torch.int64),
+            torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]], dtype=torch.int64),
+            torch.tensor([[1, 2], [0, 3]], dtype=torch.int64),
+            torch.tensor([0, 3], dtype=torch.int64),
+        ),
+    ],
+)
 def test_inverse_t_mpnn_2(V, E, expected_E, expected_indices):
     """
     Test functionality of finding preimages of given V

@@ -24,7 +24,7 @@ class GAT_2_Paper(torch.nn.Module):
         H = nn.functional.elu(self.conv1(V, E, H))
         H = nn.functional.dropout(H, p=0.6, training=self.training)
         H = self.conv2(V, E, H)
-        return H # PyG uses log softmax here
+        return H  # PyG uses log softmax here
 
     def __repr__(self):
         return self.__class__.__name__
@@ -33,15 +33,19 @@ class GAT_2_Paper(torch.nn.Module):
 class PyG_GAT_Paper(torch.nn.Module):
     def __init__(self, input_dim, output_dim, heads=8):
         super().__init__()
-        self.conv1 = torch_geometric.nn.conv.GATConv(input_dim, 8, heads=heads, add_self_loops=True)
-        self.conv2 = torch_geometric.nn.conv.GATConv(8 * heads, output_dim, heads=1, concat=False, add_self_loops=True)
+        self.conv1 = torch_geometric.nn.conv.GATConv(
+            input_dim, 8, heads=heads, add_self_loops=True
+        )
+        self.conv2 = torch_geometric.nn.conv.GATConv(
+            8 * heads, output_dim, heads=1, concat=False, add_self_loops=True
+        )
 
-    def forward(self, V, E, X):        
+    def forward(self, V, E, X):
         x = nn.functional.dropout(X, p=0.6, training=self.training)
         x = nn.functional.elu(self.conv1(x, E))
         x = nn.functional.dropout(x, p=0.6, training=self.training)
         x = self.conv2(x, E)
-        return x # PyG uses log softmax here
+        return x  # PyG uses log softmax here
 
     def __repr__(self):
         return self.__class__.__name__

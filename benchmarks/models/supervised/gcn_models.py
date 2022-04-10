@@ -29,7 +29,7 @@ class GCN_2(torch.nn.Module):
 
     def forward(self, data):
         X, E, batch = data.x, data.edge_index, data.batch
-        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, X.shape[0], dtype=torch.int64)  # Create vertices
         X = torch.nn.functional.relu(self.conv1(V, E, X))
         for conv in self.convs:
             X = torch.nn.functional.relu(conv(V, E, X))

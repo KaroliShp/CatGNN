@@ -29,10 +29,16 @@ class GraphSAGE_2(torch.nn.Module):
 
     def forward(self, data):
         X, E, batch = data.x, data.edge_index, data.batch
-        V = torch.arange(0, X.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, X.shape[0], dtype=torch.int64)  # Create vertices
         X = F.relu(self.conv1(V, E, X))
         for conv in self.convs:
-            X = F.relu(conv(V, E, X,))
+            X = F.relu(
+                conv(
+                    V,
+                    E,
+                    X,
+                )
+            )
         X = torch_geometric.nn.global_mean_pool(X, batch)
         X = F.relu(self.lin1(X))
         X = F.dropout(X, p=0.5, training=self.training)
