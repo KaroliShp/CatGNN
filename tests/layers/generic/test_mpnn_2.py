@@ -1,6 +1,5 @@
 import pytest
 from catgnn.layers.generic.generic_mpnn_2 import GenericMPNNLayer_2, GenericFactoredMPNNLayer_2, GenericMPNNLayer_2_Forwards
-from catgnn.typing import *
 import torch
 
 

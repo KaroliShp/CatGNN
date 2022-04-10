@@ -1,5 +1,4 @@
 from catgnn.integral_transform.mpnn_1 import BaseMPNNLayer_1
-from catgnn.typing import *
 import numpy as np
 import torch
 from catgnn.utils import add_self_loops, get_degrees

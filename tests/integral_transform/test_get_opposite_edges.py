@@ -2,9 +2,6 @@ import pytest
 from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 import torch
 
-"""
-MPNN_2
-"""
 
 @pytest.mark.parametrize('E,expected_E', [
     # Undirected graph

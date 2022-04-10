@@ -38,7 +38,6 @@ class PlanetoidDataset(SemiSupervisedDataset):
     
     def get_vertices(self):
         return torch.arange(0, self.dataset.x.shape[0], dtype=torch.int64)
-        #return torch.arange(0,torch.max(self.dataset.edge_index)+1)
 
     def get_dimensions(self):
         return self.dataset_obj.num_features, self.dataset_obj.num_classes

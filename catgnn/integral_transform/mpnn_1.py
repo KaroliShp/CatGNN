@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from catgnn.typing import *
 
 
 class BaseMPNNLayer_1(nn.Module):
@@ -22,6 +21,7 @@ class BaseMPNNLayer_1(nn.Module):
         return self.E_indexed[1][e[2]]
 
     def _set_preimages(self, V):
+        # This V always has to be full V (not chosen), since it is passed to self.pipeline()
         self._preimages = []
 
         # Create a list of lists, alternatively could be a dict
@@ -32,12 +32,11 @@ class BaseMPNNLayer_1(nn.Module):
         for i in range(0, self.E_indexed.shape[1]):
             self._preimages[self.E_indexed[1][i]].append(self.E_indexed[:,i])
 
-    def t_1(self, v) -> List[torch.Tensor]:
+    def t_1(self, v):
         return self._preimages[v]
 
     def f(self, v):
         return self.X[v]
-
 
     """
     Integral transform primitives (backwards)
@@ -75,7 +74,7 @@ class BaseMPNNLayer_1(nn.Module):
         # Prepare pipeline
         pullback = self.define_pullback(self.f) # E -> R
         if kernel_factor:
-            # Factoring kernel for MPNN_1 is not supported
+            # Factoring kernel for MPNN_1 is not supported (no point because it is already slow)
             raise NotImplementedError
         else:
             kernel_transformation = self.define_kernel(pullback) # E -> R
@@ -88,3 +87,11 @@ class BaseMPNNLayer_1(nn.Module):
             updated_features = torch.hstack((updated_features,aggregator(v)))
 
         return self.update(X, updated_features.view(X.shape[0],-1))
+
+    """
+    Integral transform primitives (backwards)
+    """
+
+    def pipeline_forwards(self, V, E, X, kernel_factor=False):
+        # Forwards implementaton is not supported (no point because it is already slow)
+        raise NotImplementedError

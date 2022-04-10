@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from catgnn.typing import *
 
 
 class BaseMPNNLayer_2(nn.Module):

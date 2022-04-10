@@ -1,5 +1,4 @@
 from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
-from catgnn.typing import *
 import torch
 from torch import nn
 import torch_scatter

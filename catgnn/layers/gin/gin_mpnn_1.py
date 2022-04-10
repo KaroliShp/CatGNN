@@ -1,5 +1,4 @@
 from catgnn.integral_transform.mpnn_1 import BaseMPNNLayer_1
-from catgnn.typing import *
 import torch
 from torch import nn
 import torch_geometric
