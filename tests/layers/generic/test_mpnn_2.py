@@ -5,14 +5,14 @@ import torch
 
 
 TEST_GRAPHS = [
-    # Normal undirected graph
+    # Undirected graph
     (
         torch.tensor([0, 1, 2, 3], dtype=torch.int64),
         torch.tensor([(0,1), (1,0),
                       (1,2), (2,1), 
                       (2,3), (3,2) ], dtype=torch.int64).T,
         torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
-        torch.tensor([[0, 1], [1, 0], [1, 2], [1, 0]])
+        torch.tensor([[0,1], [1,0], [1,2], [1,0]])
     ),
     # Two directed edges
     (
@@ -21,19 +21,19 @@ TEST_GRAPHS = [
                       (1,2), (2,1), 
                       (2,3), (3,1) ], dtype=torch.int64).T,
         torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
-        torch.tensor([[0, 1], [1, 0], [1, 2], [0, 1]])
+        torch.tensor([[0,1], [2,1], [0,1], [1,0]])
     )
 ]
 
 TEST_GRAPHS_FACTORED = [
-    # Normal undirected graph
+    # Undirected graph
     (
         torch.tensor([0, 1, 2, 3], dtype=torch.int64),
         torch.tensor([(0,1), (1,0),
                       (1,2), (2,1), 
                       (2,3), (3,2) ], dtype=torch.int64).T,
         torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
-        torch.tensor([[0, 1], [1, 2], [3, 2], [2, 1]])
+        torch.tensor([[0,1], [1,2], [3,2], [2,1]])
     ),
     # Two directed edges
     (
@@ -42,7 +42,7 @@ TEST_GRAPHS_FACTORED = [
                       (1,2), (2,1), 
                       (2,3), (3,1) ], dtype=torch.int64).T,
         torch.tensor([[0,0], [0,1], [1,0], [1,1]]),
-        torch.tensor([[0, 1], [1, 2], [3, 2], [1, 2]])
+        torch.tensor([[0,1], [2,4], [1,1], [2,1]])
     )
 ]
 

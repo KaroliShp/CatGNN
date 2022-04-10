@@ -16,10 +16,10 @@ class BaseMPNNLayer_1(nn.Module):
         self.E_indexed = torch.cat((E, torch.arange(0, E.shape[1]).view(1,-1)))
 
     def s(self, e):
-        return self.E_indexed[1][e[2]]
+        return self.E_indexed[0][e[2]]
 
     def t(self, e):
-        return self.E_indexed[0][e[2]]
+        return self.E_indexed[1][e[2]]
 
     def _set_preimages(self, V):
         self._preimages = []
@@ -30,7 +30,7 @@ class BaseMPNNLayer_1(nn.Module):
 
         # Fill in all preimages with receiver and edge index
         for i in range(0, self.E_indexed.shape[1]):
-            self._preimages[self.E_indexed[0][i]].append(self.E_indexed[:,i])
+            self._preimages[self.E_indexed[1][i]].append(self.E_indexed[:,i])
 
     def t_1(self, v) -> List[torch.Tensor]:
         return self._preimages[v]
