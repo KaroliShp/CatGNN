@@ -31,7 +31,7 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
         # TODO: add dropout within the layer?
 
         # Do integral transform
-        return self.pipeline_backwards(V, E, X, kernel_factor=True)
+        return self.transform_backwards(V, E, X, kernel_factor=True)
     
     def define_pullback(self, f):
         def pullback(E):

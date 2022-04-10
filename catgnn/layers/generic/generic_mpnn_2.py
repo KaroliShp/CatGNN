@@ -10,7 +10,7 @@ class GenericMPNNLayer_2(BaseMPNNLayer_2):
         super().__init__()
     
     def forward(self, V, E, X):
-        out = self.pipeline_backwards(V, E, X, kernel_factor=False)
+        out = self.transform_backwards(V, E, X, kernel_factor=False)
         return out
     
     def define_pullback(self, f):
@@ -59,7 +59,7 @@ class GenericFactoredMPNNLayer_2(BaseMPNNLayer_2):
         super().__init__()
     
     def forward(self, V, E, X):
-        out = self.pipeline_backwards(V, E, X, kernel_factor=True)
+        out = self.transform_backwards(V, E, X, kernel_factor=True)
         return out
     
     def define_pullback(self, f):
@@ -110,7 +110,7 @@ class GenericMPNNLayer_2_Forwards(BaseMPNNLayer_2):
         super().__init__()
     
     def forward(self, V, E, X):
-        out = self.pipeline_forwards(V, E, X, kernel_factor=False)
+        out = self.transform_forwards(V, E, X, kernel_factor=False)
         return out
 
     def pullback(self, E, f):
@@ -138,7 +138,7 @@ class GenericFactoredMPNNLayer_2_Forwards(BaseMPNNLayer_2):
         super().__init__()
     
     def forward(self, V, E, X):
-        out = self.pipeline_forwards(V, E, X, kernel_factor=False)
+        out = self.transform_forwards(V, E, X, kernel_factor=False)
         return out
 
     def pullback(self, E, f):

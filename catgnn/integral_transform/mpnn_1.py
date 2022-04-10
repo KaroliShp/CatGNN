@@ -21,7 +21,7 @@ class BaseMPNNLayer_1(nn.Module):
         return self.E_indexed[1][e[2]]
 
     def _set_preimages(self, V):
-        # This V always has to be full V (not chosen), since it is passed to self.pipeline()
+        # This V always has to be full V (not chosen), since it is passed to self.transform()
         self._preimages = []
 
         # Create a list of lists, alternatively could be a dict
@@ -65,13 +65,13 @@ class BaseMPNNLayer_1(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def pipeline_backwards(self, V, E, X, kernel_factor=False):
+    def transform_backwards(self, V, E, X, kernel_factor=False):
         # Prepare edge indices for span diagram and the feature function f : V -> R
         self._add_edge_indices(E)
         self._set_preimages(V)
         self.X = X
 
-        # Prepare pipeline
+        # Prepare transform
         pullback = self.define_pullback(self.f) # E -> R
         if kernel_factor:
             # Factoring kernel for MPNN_1 is not supported (no point because it is already slow)
@@ -81,7 +81,7 @@ class BaseMPNNLayer_1(nn.Module):
         pushforward = self.define_pushforward(kernel_transformation) # V -> N[R]
         aggregator = self.define_aggregator(pushforward) # V -> R
 
-        # Apply the pipeline to each node in the graph
+        # Apply the transform to each node in the graph
         updated_features = torch.Tensor()
         for v in V:
             updated_features = torch.hstack((updated_features,aggregator(v)))
@@ -92,6 +92,6 @@ class BaseMPNNLayer_1(nn.Module):
     Integral transform primitives (backwards)
     """
 
-    def pipeline_forwards(self, V, E, X, kernel_factor=False):
+    def transform_forwards(self, V, E, X, kernel_factor=False):
         # Forwards implementaton is not supported (no point because it is already slow)
         raise NotImplementedError

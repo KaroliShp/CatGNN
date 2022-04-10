@@ -12,7 +12,7 @@ class SAGELayer_MPNN_1(BaseMPNNLayer_1):
         self.mlp_update_2 = torch.nn.Linear(in_dim, out_dim)
     
     def forward(self, V, E, X):
-        out = self.pipeline_backwards(V, E, X)
+        out = self.transform_backwards(V, E, X)
         return out
 
     def define_pullback(self, f):

@@ -9,7 +9,7 @@ class GenericMPNNLayer_1(BaseMPNNLayer_1):
         super().__init__()
     
     def forward(self, V, E, X):
-        out = self.pipeline_backwards(V, E, X)
+        out = self.transform_backwards(V, E, X)
         return out
 
     def define_pullback(self, f):

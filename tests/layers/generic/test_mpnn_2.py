@@ -49,7 +49,7 @@ TEST_GRAPHS_FACTORED = [
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
 def test_generic_mpnn_2(V, E, X, expected_output):
     """
-    Technically this is an integration test (since it tests the whole pipeline)
+    Technically this is an integration test (since it tests the whole transform)
     """
     generic_layer = GenericMPNNLayer_2()
     output = generic_layer(V, E, X)
@@ -60,7 +60,7 @@ def test_generic_mpnn_2(V, E, X, expected_output):
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS_FACTORED)
 def test_generic_factored_mpnn_2(V, E, X, expected_output):
     """
-    Technically this is an integration test (since it tests the whole pipeline)
+    Technically this is an integration test (since it tests the whole transform)
     """
     generic_layer = GenericFactoredMPNNLayer_2()
     output = generic_layer(V, E, X)
@@ -71,7 +71,7 @@ def test_generic_factored_mpnn_2(V, E, X, expected_output):
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
 def test_generic_mpnn_2_forwards(V, E, X, expected_output):
     """
-    Technically this is an integration test (since it tests the whole pipeline)
+    Technically this is an integration test (since it tests the whole transform)
     """
     generic_layer = GenericMPNNLayer_2_Forwards()
     output = generic_layer(V, E, X)

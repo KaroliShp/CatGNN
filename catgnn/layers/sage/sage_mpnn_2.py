@@ -14,7 +14,7 @@ class SAGELayer_MPNN_2(BaseMPNNLayer_2):
     
     def forward(self, V, E, X):
         # Do integral transform
-        return self.pipeline_backwards(V, E, X)
+        return self.transform_backwards(V, E, X)
 
     def define_pullback(self, f):
         def pullback(E):

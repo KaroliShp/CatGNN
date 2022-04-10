@@ -28,7 +28,7 @@ TEST_GRAPHS = [
 @pytest.mark.parametrize('V,E,X,expected_output', TEST_GRAPHS)
 def test_generic_mpnn_1(V, E, X, expected_output):
     """
-    Technically this is an integration test (since it tests the whole pipeline)
+    Technically this is an integration test (since it tests the whole transform)
     """
     generic_layer = GenericMPNNLayer_1()
     output = generic_layer(V, E, X)

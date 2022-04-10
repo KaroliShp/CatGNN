@@ -84,20 +84,12 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
     
-    """
-    Maybe this is better?
-    """
-    def define_update(self, aggregator):
-        def update(self, V, X):
-            raise NotImplementedError
-        return update
-
-    def pipeline_backwards(self, V, E, X, kernel_factor=False):
+    def transform_backwards(self, V, E, X, kernel_factor=False):
         # Set the span diagram (preimage) and feature function f : V -> R
         self.X = X
         self.E = E
 
-        # Prepare pipeline
+        # Prepare transform
         pullback = self.define_pullback(self.f) # E -> R
         if kernel_factor:
             # Hide extra edges as implementation detail
@@ -111,7 +103,7 @@ class BaseMPNNLayer_2(nn.Module):
         pushforward = self.define_pushforward(kernel_transformation) # V -> N[R]
         aggregator = self.define_aggregator(pushforward) # V -> R
 
-        # Apply the pipeline to each node in the graph
+        # Apply the transform to each node in the graph
         return self.update(X, aggregator(V))
 
     """
@@ -139,7 +131,7 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def pipeline_forwards(self, V, E, X, kernel_factor=False):    
+    def transform_forwards(self, V, E, X, kernel_factor=False):    
         # Set the span diagram (preimage) and feature function f : V -> R
         self.X = X
 

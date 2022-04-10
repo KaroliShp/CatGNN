@@ -16,7 +16,7 @@ class GINLayer_MPNN_1(BaseMPNNLayer_1):
     
     def forward(self, V, E, X):
         # Do integral transform
-        return self.pipeline_backwards(V, E, X)
+        return self.transform_backwards(V, E, X)
 
     def define_pullback(self, f):
         def pullback(e):

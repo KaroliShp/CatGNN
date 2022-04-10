@@ -24,9 +24,9 @@ class SGCLayer_MPNN_1(BaseMPNNLayer_1):
 
         # Do integral transform (just like PyG - not sure if this is the best way to do it?)
         # Why then not just always let K=1 and do this by stacking the layers? Why K as an argument?
-        out = self.pipeline_backwards(V, E, X)
+        out = self.transform_backwards(V, E, X)
         for k in range(self.K-1):
-            out = self.pipeline_backwards(V, E, out)
+            out = self.transform_backwards(V, E, out)
 
         return self.mlp_update(out)
 
