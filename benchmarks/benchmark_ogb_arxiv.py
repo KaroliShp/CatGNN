@@ -21,6 +21,10 @@ from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2
 from catgnn.layers.sage.sage_mpnn_2 import SAGELayer_MPNN_2
 
 
+device = f'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = torch.device(device)
+
+
 """
 GCN
 """
@@ -50,7 +54,7 @@ class GCN(torch.nn.Module):
             bn.reset_parameters()
 
     def forward(self, x, adj_t):
-        V = torch.arange(0, x.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, x.shape[0], dtype=torch.int64).to(device) # Create vertices
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(V, adj_t, x)
             x = self.bns[i](x)
@@ -252,32 +256,31 @@ def test(model, data, split_idx, evaluator, is_sparse):
     return train_acc, valid_acc, test_acc
 
 
-def main():
+def main(args=None):
+    """
     parser = argparse.ArgumentParser(description='OGBN-Arxiv (GNN)')
     parser.add_argument('--device', type=int, default=0)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--use_sage', action='store_true')
     parser.add_argument('--num_layers', type=int, default=3)
-    parser.add_argument('--hidden_channels', type=int, default=256)
+    parser.add_argument('--hidden_channels', type=int, default=128)
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--runs', type=int, default=10)
-    parser.add_argument('--catgnn', type=bool, default=False)
-    args = parser.parse_args()
+    parser.add_argument('--catgnn', type=bool, default=True)
+    args = parser.parse_args(args=[])
     print(args)
-
-    device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
-    device = torch.device(device)
-
+    """
+    
+    # Prepare data (differently from the original benchmark - don't use pytorch_sparse for CatGNN)
+    dataset = PygNodePropPredDataset(name='ogbn-arxiv',
+                                    transform=T.ToSparseTensor())
+    data = dataset[0]
+    data.adj_t = data.adj_t.to_symmetric()
     if args.catgnn:
-        dataset = PygNodePropPredDataset(name='ogbn-arxiv')
-        data = dataset[0]
-    else:
-        dataset = PygNodePropPredDataset(name='ogbn-arxiv',
-                                        transform=T.ToSparseTensor())
-        data = dataset[0]
-        data.adj_t = data.adj_t.to_symmetric()
+        data.edge_index = torch.cat((data.adj_t.coo()[0],data.adj_t.coo()[1])).view(2,-1)
+        data.adj_t = None
     data = data.to(device)
 
     split_idx = dataset.get_idx_split()
@@ -327,7 +330,7 @@ def main():
                       f'Loss: {loss:.4f}, '
                       f'Train: {100 * train_acc:.2f}%, '
                       f'Valid: {100 * valid_acc:.2f}% '
-                      f'Test: {100 * test_acc:.2f}%'
+                      f'Test: {100 * test_acc:.2f}% '
                       f'Runtime: {timedelta(seconds=end - start)}')
 
         logger.print_statistics(run)

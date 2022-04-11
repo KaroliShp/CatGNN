@@ -94,7 +94,7 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def transform_backwards(self, V, E, X, kernel_factor=False, validate_input=True):
+    def transform_backwards(self, V, E, X, kernel_factor=False, validate_input=False):
         if validate_input:
             self._validate_input(V, E, X)
 
@@ -204,3 +204,7 @@ class BaseMPNNLayer_2(nn.Module):
 
         # Now assert that the shapes of V, E and X together make sense
         assert V.shape[0] == X.shape[0], f'V must have the same shape as X'
+
+        # TODO: maybe also assert devices (easier to debug)?
+        # TODO: maybe also create a new method for checking that the implementation is
+        # correct (that is that the types of returned functions is correct etc.)?

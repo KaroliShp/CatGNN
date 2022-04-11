@@ -29,7 +29,7 @@ class Net(torch.nn.Module):
         return F.log_softmax(x, dim=1)
         """
         x, edge_index = data.x, data.edge_index
-        v = torch.arange(0, x.shape[0], dtype=torch.int64)
+        v = torch.arange(0, x.shape[0], dtype=torch.int64, device=x.device)
         x = F.relu(self.conv1(v, edge_index, x))
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(v, edge_index, x)
