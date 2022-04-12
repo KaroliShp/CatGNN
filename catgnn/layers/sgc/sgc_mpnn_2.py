@@ -3,6 +3,7 @@ from torch import nn
 import torch_scatter
 
 from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
+from catgnn.utils import add_self_loops, get_degrees
 
 
 class SGCLayer_MPNN_2(BaseMPNNLayer_2):
@@ -14,12 +15,10 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
-        E = torch.cat((E, torch.arange(V.shape[0]).repeat(2, 1)), dim=1)
+        E = add_self_loops(V, E)
 
-        # Compute normalization.
-        self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(
-            0, E[1], torch.ones(E.shape[1], dtype=torch.int64)
-        )
+        # Compute normalization as edge weights
+        self.degrees = get_degrees(V, E)
         self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform (just like PyG - not sure if this is the best way to do it?)
@@ -44,7 +43,6 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
     def define_pushforward(self, kernel):
         def pushforward(V):
-            # Need to call preimage here
             E, bag_indices = self.t_1(V)
             return kernel(E), bag_indices
 
@@ -62,10 +60,6 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
     def update(self, X, output):
         return output
-
-    """
-    Other methods (TODO)
-    """
 
     def reset_parameters(self):
         self.mlp_update.reset_parameters()

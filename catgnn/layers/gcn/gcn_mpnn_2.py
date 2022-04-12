@@ -162,16 +162,3 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
 
     def reset_parameters(self):
         self.mlp_msg.reset_parameters()
-
-
-if __name__ == "__main__":
-    V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
-
-    # E is a set of edges - usual sparse representation in PyG
-    E = torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
-
-    # Feature matrix - usual representation
-    X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float)
-
-    example_layer = GCNLayer_MPNN_2(2, 2)
-    print(example_layer(V, E, X))

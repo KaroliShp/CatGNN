@@ -23,7 +23,6 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix
         # GAT paper: " In all our experiments, these will be exactly the first-order neighbors of i (including i)"
-        # E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
         E = add_self_loops(V, E)
 
         # TODO: add dropout within the layer?
@@ -124,7 +123,5 @@ if __name__ == "__main__":
     X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float)
 
     example_layer = GATLayer_MPNN_2(2, 2, heads=8)
-    """
     print(example_layer(V, E, X))
-    """
     example_layer.reset_parameters()

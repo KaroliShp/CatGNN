@@ -14,11 +14,9 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
-        # E = torch.cat((E,torch.arange(V.shape[0]).repeat(2,1)), dim=1)
         E = add_self_loops(V, E)
 
-        # Compute normalization.
-        # self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(0, E[1], torch.ones(E.shape[1], dtype=torch.int64))
+        # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
         self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
@@ -33,8 +31,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
 
     def define_kernel(self, pullback):
         def kernel_transformation(e):
-            # Linearly transform node feature matrix and normalize node features
-            return self.mlp_msg(pullback(e)) * self.norm[e[2]]
+            return self.norm[e[2]] * self.mlp_msg(pullback(e))
 
         return kernel_transformation
 
@@ -60,4 +57,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(output)
+        return output
+
+    def reset_parameters(self):
+        self.mlp_msg.reset_parameters()

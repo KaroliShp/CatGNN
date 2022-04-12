@@ -47,10 +47,6 @@ class SAGELayer_MPNN_2(BaseMPNNLayer_2):
     def update(self, X, output):
         return self.mlp_update_2(X) + self.mlp_update_1(output)
 
-    """
-    Other methods (TODO)
-    """
-
     def reset_parameters(self):
         self.mlp_update_1.reset_parameters()
         self.mlp_update_2.reset_parameters()

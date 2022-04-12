@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch_scatter
-import torch_geometric
+import torch_geometric  # TODO: write our own reset function
 
 from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 
@@ -52,6 +52,7 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         return self.mlp_update(((1 + self.eps) * X) + output)
 
     def reset_parameters(self):
+        # TODO: write our own reset function
         torch_geometric.nn.inits.reset(self.mlp_update)
         self.eps = nn.Parameter(
             torch.Tensor([self.eps_0]), requires_grad=self.train_eps
