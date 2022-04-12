@@ -53,11 +53,9 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return output  # dont forget to fix it back after benchmark tests are rewritten
-
-    """
-    Other methods (TODO)
-    """
+        # Not sure if better to leave this as this and add update in the actual model (like PyG)
+        # or to add the update here (same thing applies to all other layers)
+        return output
 
     def reset_parameters(self):
         self.mlp_msg.reset_parameters()
@@ -67,17 +65,15 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
-        self.mlp_msg = nn.Linear(in_dim, out_dim)  # \psi
+        self.mlp_msg = nn.Linear(in_dim, out_dim, bias=False)  # \psi
         self.mlp_update = nn.LeakyReLU()  # \phi
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
-        E = torch.cat((E, torch.arange(V.shape[0]).repeat(2, 1)), dim=1)
+        E = add_self_loops(V, E)
 
-        # Compute normalization.
-        self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(
-            0, E[1], torch.ones(E.shape[1], dtype=torch.int64)
-        )
+        # Compute normalization as edge weights
+        self.degrees = get_degrees(V, E)
         self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
@@ -99,7 +95,7 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
     def define_kernel_factor_2(self, kernel_factor_1):
         def kernel_factor_2(E):
             r_sender, r_receiver = kernel_factor_1(E)
-            return self.mlp_msg(r_sender) * self.norm.view(-1, 1)
+            return self.norm.view(-1, 1) * self.mlp_msg(r_sender)
 
         return kernel_factor_2
 
@@ -121,24 +117,25 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(output)
+        return output
+
+    def reset_parameters(self):
+        self.mlp_msg.reset_parameters()
 
 
 class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
-        self.mlp_msg = nn.Linear(in_dim, out_dim)  # \psi
+        self.mlp_msg = nn.Linear(in_dim, out_dim, bias=False)  # \psi
         self.mlp_update = nn.LeakyReLU()  # \phi
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
-        E = torch.cat((E, torch.arange(V.shape[0]).repeat(2, 1)), dim=1)
+        E = add_self_loops(V, E)
 
-        # Compute normalization.
-        self.degrees = torch.zeros(V.shape[0], dtype=torch.int64).scatter_add_(
-            0, E[1], torch.ones(E.shape[1], dtype=torch.int64)
-        )
+        # Compute normalization as edge weights
+        self.degrees = get_degrees(V, E)
         self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
@@ -148,7 +145,7 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
         return f(self.s(E)), E
 
     def kernel_transformation(self, E, pulledback_features):
-        return self.mlp_msg(pulledback_features) * self.norm.view(-1, 1)
+        return self.norm.view(-1, 1) * self.mlp_msg(pulledback_features)
 
     def pushforward(self, V, edge_messages):
         E, bag_indices = self.t_1(V)
@@ -161,4 +158,20 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
         return aggregated[V]
 
     def update(self, X, output):
-        return self.mlp_update(output)
+        return output
+
+    def reset_parameters(self):
+        self.mlp_msg.reset_parameters()
+
+
+if __name__ == "__main__":
+    V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
+
+    # E is a set of edges - usual sparse representation in PyG
+    E = torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
+
+    # Feature matrix - usual representation
+    X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float)
+
+    example_layer = GCNLayer_MPNN_2(2, 2)
+    print(example_layer(V, E, X))

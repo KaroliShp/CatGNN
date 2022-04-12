@@ -20,8 +20,6 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
         self.mlp_msgs = nn.ModuleList(self.mlp_msgs)
         self.attention_as = nn.ModuleList(self.attention_as)
 
-        self.mlp_update = nn.LeakyReLU(negative_slope=0.02)  # \phi
-
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix
         # GAT paper: " In all our experiments, these will be exactly the first-order neighbors of i (including i)"
@@ -59,7 +57,8 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
                 )  # Note that we concatenate on the last dimension (-1) (rows)
 
                 attention_coefficients = torch.nn.functional.leaky_relu(
-                    self.attention_as[h](concatenated_features)
+                    self.attention_as[h](concatenated_features),
+                    negative_slope=0.02
                 ).exp()  # e_{i,j}
 
                 softmax_denominator = torch_scatter.scatter_add(
@@ -106,7 +105,13 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
         return aggregator
 
     def update(self, X, output):
-        return self.mlp_update(output)
+        return output
+
+    def reset_parameters(self):
+        for m in self.mlp_msgs:
+            m.reset_parameters()
+        for a in self.attention_as:
+            a.reset_parameters()
 
 
 if __name__ == "__main__":
@@ -119,4 +124,7 @@ if __name__ == "__main__":
     X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float)
 
     example_layer = GATLayer_MPNN_2(2, 2, heads=8)
+    """
     print(example_layer(V, E, X))
+    """
+    example_layer.reset_parameters()
