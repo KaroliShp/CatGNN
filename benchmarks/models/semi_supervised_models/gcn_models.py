@@ -1,5 +1,4 @@
-from benchmarks.utils.train_semi_supervised import train_eval_loop
-from catgnn.layers.gcn.gcn_mpnn_1 import GCNLayer_MPNN_1, GCNLayer_Factored_MPNN_1
+from catgnn.layers.gcn.gcn_mpnn_1 import GCNLayer_MPNN_1
 from catgnn.layers.gcn.gcn_mpnn_2 import (
     GCNLayer_MPNN_2,
     GCNLayer_Factored_MPNN_2,
@@ -26,17 +25,8 @@ class GCN_1(torch.nn.Module):
         forwards=False,
     ):
         super().__init__()
-        assert (
-            factored and forwards
-        ) == False, "Factored and forwards not supported at the moment"
-        if factored:
-            print("Factored implementation")
-            self.chosen_layer = GCNLayer_Factored_MPNN_1
-        elif forwards:
-            raise NotImplementedError
-        else:
-            print("Standard implementation")
-            self.chosen_layer = GCNLayer_MPNN_1
+        print("Standard implementation")
+        self.chosen_layer = GCNLayer_MPNN_1
 
         self.num_layers = num_layers
         if self.num_layers == 1:

@@ -4,6 +4,10 @@ import torch_geometric
 from catgnn.datasets.semi_supervised_dataset import SemiSupervisedDataset
 
 
+device = f'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = torch.device(device)
+
+
 class PlanetoidDataset(SemiSupervisedDataset):
     def __init__(self, name, split, normalize=False):
         super(PlanetoidDataset, self).__init__()
@@ -23,6 +27,7 @@ class PlanetoidDataset(SemiSupervisedDataset):
                 root=f"/tmp/{name}", name=name, split=split
             )
         self.dataset = self.dataset_obj[0]
+        self.dataset = self.dataset.to(device)
 
     def split(self):
         train_y = self.dataset.y[self.dataset.train_mask]
@@ -47,7 +52,7 @@ class PlanetoidDataset(SemiSupervisedDataset):
             ).T
 
     def get_vertices(self):
-        return torch.arange(0, self.dataset.x.shape[0], dtype=torch.int64)
+        return torch.arange(0, self.dataset.x.shape[0], dtype=torch.int64, device=self.dataset.x.device)
 
     def get_dimensions(self):
         return self.dataset_obj.num_features, self.dataset_obj.num_classes

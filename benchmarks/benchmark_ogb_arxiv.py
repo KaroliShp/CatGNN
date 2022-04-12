@@ -187,17 +187,17 @@ GAT
 class GAT(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
-        super(GCN, self).__init__()
+        super(GAT, self).__init__()
 
         self.convs = torch.nn.ModuleList()
-        self.convs.append(GATLayer_MPNN_2(in_channels, hidden_channels, heads=2))
+        self.convs.append(GATLayer_MPNN_2(in_channels, hidden_channels, heads=1))
         self.bns = torch.nn.ModuleList()
         self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
         for _ in range(num_layers - 2):
             self.convs.append(
-                GATLayer_MPNN_2(hidden_channels*2, hidden_channels, heads=2))
+                GATLayer_MPNN_2(hidden_channels, hidden_channels, heads=1))
             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        self.convs.append(GATLayer_MPNN_2(hidden_channels*2, out_channels, heads=1))
+        self.convs.append(GATLayer_MPNN_2(hidden_channels, out_channels, heads=1))
 
         self.dropout = dropout
 
@@ -221,17 +221,17 @@ class GAT(torch.nn.Module):
 class PyG_GAT(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
-        super(PyG_GCN, self).__init__()
+        super(PyG_GAT, self).__init__()
 
         self.convs = torch.nn.ModuleList()
-        self.convs.append(GATConv(in_channels, hidden_channels, heads=2))
+        self.convs.append(GATConv(in_channels, hidden_channels, heads=1))
         self.bns = torch.nn.ModuleList()
         self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
         for _ in range(num_layers - 2):
             self.convs.append(
-                GATConv(hidden_channels*2, hidden_channels, heads=2))
+                GATConv(hidden_channels, hidden_channels, heads=1))
             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        self.convs.append(GATConv(hidden_channels*2, out_channels))
+        self.convs.append(GATConv(hidden_channels, out_channels))
 
         self.dropout = dropout
 
@@ -259,7 +259,7 @@ SGC
 class SGC(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
-        super(GCN, self).__init__()
+        super(SGC, self).__init__()
 
         self.convs = torch.nn.ModuleList()
         self.convs.append(SGCLayer_MPNN_2(in_channels, hidden_channels, K=2))
@@ -293,7 +293,7 @@ class SGC(torch.nn.Module):
 class PyG_SGC(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
-        super(PyG_GCN, self).__init__()
+        super(PyG_SGC, self).__init__()
 
         self.convs = torch.nn.ModuleList()
         self.convs.append(SGConv(in_channels, hidden_channels, K=2, cached=False))
@@ -426,7 +426,7 @@ def main(args=None):
         parser.add_argument('--lr', type=float, default=0.01)
         parser.add_argument('--epochs', type=int, default=500)
         parser.add_argument('--runs', type=int, default=10)
-        parser.add_argument('--catgnn', type=bool, default=False)
+        parser.add_argument('--catgnn', type=bool, default=True)
         parser.add_argument('--catgnn_factored', type=bool, default=False)
         parser.add_argument('--catgnn_forward', type=bool, default=False)
         args = parser.parse_args(args=[])

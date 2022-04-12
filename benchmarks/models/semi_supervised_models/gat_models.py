@@ -1,4 +1,3 @@
-from benchmarks.utils.train_semi_supervised import train_eval_loop
 from catgnn.layers.gat.gat_mpnn_2 import GATLayer_MPNN_2
 import torch
 from torch import nn

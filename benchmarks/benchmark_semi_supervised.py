@@ -25,6 +25,10 @@ from benchmarks.utils.analyse_performance import (
 )
 
 
+device = f'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = torch.device(device)
+
+
 def run_benchmark(
     dataset_name,
     model_nn,
@@ -33,7 +37,7 @@ def run_benchmark(
     lr=0.01,
     weight_decay=5e-4,
     num_epochs=200,
-    debug=True,
+    debug=False,
     sender_to_receiver=True,
     **kwargs,
 ):
@@ -48,7 +52,7 @@ def run_benchmark(
     E = dataset.get_edges(sender_to_receiver)
     X = dataset.get_features()
 
-    model = model_nn(input_dim=input_dim, output_dim=output_dim, **kwargs)
+    model = model_nn(input_dim=input_dim, output_dim=output_dim, **kwargs).to(device)
 
     return train_eval_loop(
         model,
@@ -89,42 +93,44 @@ def repeat_benchmark(repeat, func, experiment_name, *args, **kwargs):
     )
 
 
-def run_paper_benchmarks(name="Cora", repeat=2):
-    # Benchmarks for paper reproducability on both full and random splits
+def run_pytorch_benchmarks_gcn(name="Cora", repeat=2):
+    # Public splits
     """
-    experiment_0 = 'Cora CatGNN GCN (1)'
-    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_1_Paper)
+    experiment_0 = f'{name} CatGNN GCN (1)'
+    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, experiment_0, name, GCN_1_Paper)
     """
 
-    """
-    experiment_1 = 'Cora CatGNN GCN (2), public split'
+    experiment_1 = f'{name} CatGNN GCN (2), public split'
     train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, name, GCN_2_Paper)
 
-    experiment_2 = 'Cora CatGNN GCN (2, factored), public split'
+    experiment_2 = f'{name} CatGNN GCN (2, factored), public split'
     train_res_2, val_res_2, test_res_2, runtime_res_2 = repeat_benchmark(repeat, run_benchmark, experiment_2, name, GCN_2_Paper, factored=True)
 
-    experiment_3 = 'Cora CatGNN GCN (2, forwards), public split'
+    experiment_3 = f'{name} CatGNN GCN (2, forwards), public split'
     train_res_3, val_res_3, test_res_3, runtime_res_3 = repeat_benchmark(repeat, run_benchmark, experiment_3, name, GCN_2_Paper, forwards=True)
 
-    experiment_4 = 'Cora PyG GCN, public split'
+    experiment_4 = f'{name} PyG GCN, public split'
     train_res_4, val_res_4, test_res_4, runtime_res_4 = repeat_benchmark(repeat, run_benchmark, experiment_4, name, PyG_GCN_Paper)
 
     print('')
+    #print(stringify_statistics(experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0))
     print(stringify_statistics(experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1))
     print(stringify_statistics(experiment_2, train_res_2, val_res_2, test_res_2, runtime_res_2))
     print(stringify_statistics(experiment_3, train_res_3, val_res_3, test_res_3, runtime_res_3))
     print(stringify_statistics(experiment_4, train_res_4, val_res_4, test_res_4, runtime_res_4))
 
-    experiment_5 = 'Cora CatGNN GCN (2), random split'
+    """
+    # Random splits
+    experiment_5 = f'{name} CatGNN GCN (2), random split'
     train_res_5, val_res_5, test_res_5, runtime_res_5 = repeat_benchmark(repeat, run_benchmark, experiment_5, name, GCN_2_Paper, split='random')
 
-    experiment_6 = 'Cora CatGNN GCN (2, factored), random split'
+    experiment_6 = f'{name} CatGNN GCN (2, factored), random split'
     train_res_6, val_res_6, test_res_6, runtime_res_6 = repeat_benchmark(repeat, run_benchmark, experiment_6, name, GCN_2_Paper, split='random', factored=True)
 
-    experiment_7 = 'Cora CatGNN GCN (2, forwards), random split'
+    experiment_7 = f'{name} CatGNN GCN (2, forwards), random split'
     train_res_7, val_res_7, test_res_7, runtime_res_7 = repeat_benchmark(repeat, run_benchmark, experiment_7, name, GCN_2_Paper, split='random', forwards=True)
 
-    experiment_8 = 'Cora PyG GCN, random split'
+    experiment_8 = f'{name} PyG GCN, random split'
     train_res_8, val_res_8, test_res_8, runtime_res_8 = repeat_benchmark(repeat, run_benchmark, experiment_8, name, PyG_GCN_Paper, split='random')
 
     print('')
@@ -134,115 +140,39 @@ def run_paper_benchmarks(name="Cora", repeat=2):
     print(stringify_statistics(experiment_8, train_res_8, val_res_8, test_res_8, runtime_res_8))
     """
 
-    """
-    experiment_9 = 'Cora CatGNN SGC (2), public split'
-    train_res_9, val_res_9, test_res_9, runtime_res_9 = repeat_benchmark(repeat, run_benchmark, experiment_9, name, SGC_2_Paper, K=3)
 
-    experiment_10 = 'Cora PyG SGC, public split'
-    train_res_10, val_res_10, test_res_10, runtime_res_10 = repeat_benchmark(repeat, run_benchmark, experiment_10, name, PyG_SGC_Paper, K=3)
+def run_pytorch_benchmarks_sgc(name="Cora", repeat=2):
+    experiment_0 = 'Cora CatGNN SGC (2), public split'
+    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, experiment_0, name, SGC_2_Paper, K=3)
+
+    experiment_1 = 'Cora PyG SGC, public split'
+    train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, name, PyG_SGC_Paper, K=3)
 
     print('')
-    print(stringify_statistics(experiment_9, train_res_9, val_res_9, test_res_9, runtime_res_9))
-    print(stringify_statistics(experiment_10, train_res_10, val_res_10, test_res_10, runtime_res_10))
-    """
-
-    experiment_11 = "Cora CatGNN GAT (2), public split"
-    train_res_11, val_res_11, test_res_11, runtime_res_11 = repeat_benchmark(
-        repeat, run_benchmark, experiment_11, name, SGC_2_Paper, K=3
-    )
-
-    experiment_12 = "Cora PyG GAT, public split"
-    train_res_12, val_res_12, test_res_12, runtime_res_12 = repeat_benchmark(
-        repeat, run_benchmark, experiment_12, name, PyG_SGC_Paper, K=3
-    )
-
-    print("")
-    print(
-        stringify_statistics(
-            experiment_11, train_res_11, val_res_11, test_res_11, runtime_res_11
-        )
-    )
-    print(
-        stringify_statistics(
-            experiment_12, train_res_12, val_res_12, test_res_12, runtime_res_12
-        )
-    )
+    print(stringify_statistics(experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0))
+    print(stringify_statistics(experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1))
 
 
 def run_paper_benchmarks_gat(name="Cora", repeat=2):
-    experiment_11 = "Cora CatGNN GAT (2), public split"
-    train_res_11, val_res_11, test_res_11, runtime_res_11 = repeat_benchmark(
-        repeat, run_benchmark, experiment_11, name, GAT_2_Paper
+    experiment_0 = "Cora CatGNN GAT (2), public split"
+    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(
+        repeat, run_benchmark, experiment_0, name, GAT_2_Paper
     )
 
-    experiment_12 = "Cora PyG GAT, public split"
-    train_res_12, val_res_12, test_res_12, runtime_res_12 = repeat_benchmark(
-        repeat, run_benchmark, experiment_12, name, PyG_GAT_Paper
-    )
-
-    print("")
-    print(
-        stringify_statistics(
-            experiment_11, train_res_11, val_res_11, test_res_11, runtime_res_11
-        )
-    )
-    print(
-        stringify_statistics(
-            experiment_12, train_res_12, val_res_12, test_res_12, runtime_res_12
-        )
-    )
-
-
-def run_layer_benchmarks(name="Cora", num_layers=1, repeat=2):
-    # Benchmarks for layers (pure runtime)
-    """
-    experiment_0 = 'Cora CatGNN GCN (1)'
-    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, 'Cora', GCN_1_Paper)
-    """
-
-    experiment_1 = f"Cora CatGNN GCN (2), num_layers={num_layers}"
+    experiment_1 = "Cora PyG GAT, public split"
     train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(
-        repeat,
-        run_benchmark,
-        experiment_1,
-        name,
-        GCN_2,
-        split="full",
-        normalize=False,
-        hidden_dim=16,
-        num_layers=num_layers,
-    )
-
-    # experiment_2 = f'Cora CatGNN GCN (2, factored), num_layers={num_layers}'
-    # train_res_2, val_res_2, test_res_2, runtime_res_2 = repeat_benchmark(repeat, run_benchmark, experiment_2, name, GCN_2, split='full', normalize=False, factored=True, num_layers=num_layers)
-
-    # experiment_3 = f'Cora CatGNN GCN (2, forwards), num_layers={num_layers}'
-    # train_res_3, val_res_3, test_res_3, runtime_res_3 = repeat_benchmark(repeat, run_benchmark, experiment_3, name, GCN_2, split='full', normalize=False, forwards=True, num_layers=num_layers)
-
-    experiment_4 = f"Cora PyG GCN, public split, num_layers={num_layers}"
-    train_res_4, val_res_4, test_res_4, runtime_res_4 = repeat_benchmark(
-        repeat,
-        run_benchmark,
-        experiment_4,
-        name,
-        PyG_GCN,
-        split="full",
-        normalize=False,
-        hidden_dim=16,
-        num_layers=num_layers,
+        repeat, run_benchmark, experiment_1, name, PyG_GAT_Paper
     )
 
     print("")
+    print(
+        stringify_statistics(
+            experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0
+        )
+    )
     print(
         stringify_statistics(
             experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1
-        )
-    )
-    # print(stringify_statistics(experiment_2, train_res_2, val_res_2, test_res_2, runtime_res_2))
-    # print(stringify_statistics(experiment_3, train_res_3, val_res_3, test_res_3, runtime_res_3))
-    print(
-        stringify_statistics(
-            experiment_4, train_res_4, val_res_4, test_res_4, runtime_res_4
         )
     )
 
@@ -251,12 +181,4 @@ if __name__ == "__main__":
     # run_paper_benchmarks()  # Cora
     # run_paper_benchmarks(name='CiteSeer')
     # run_paper_benchmarks(name='PubMed')
-
-    # run_layer_benchmarks(num_layers=1)  # Cora
-    # run_layer_benchmarks(num_layers=2)  # Cora
-    # run_layer_benchmarks(num_layers=3)  # Cora
-    # run_layer_benchmarks(num_layers=4)  # Cora
-    # run_layer_benchmarks(name='CiteSeer')
-    # run_layer_benchmarks(name='PubMed')
-
-    run_paper_benchmarks_gat()
+    pass
