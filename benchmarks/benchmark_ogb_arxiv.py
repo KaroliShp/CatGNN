@@ -14,11 +14,13 @@ from datetime import timedelta
 
 import torch
 import torch.nn.functional as F
-
 import torch_geometric.transforms as T
-from torch_geometric.nn import GCNConv, SAGEConv
-from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2
+from torch_geometric.nn import GCNConv, SAGEConv, GATConv, SGConv
+
+from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2, GCNLayer_Factored_MPNN_2, GCNLayer_MPNN_2_Forwards
+from catgnn.layers.gat.gat_mpnn_2 import GATLayer_MPNN_2
 from catgnn.layers.sage.sage_mpnn_2 import SAGELayer_MPNN_2
+from catgnn.layers.sgc.sgc_mpnn_2 import SGCLayer_MPNN_2
 
 
 device = f'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -32,18 +34,28 @@ GCN
 
 class GCN(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout):
+                 dropout, factored=False, forwards=False):
         super(GCN, self).__init__()
 
+        if factored:
+            print('Factored GCN')
+            layer = GCNLayer_Factored_MPNN_2
+        elif forwards:
+            print('Forwards GCN')
+            layer = GCNLayer_MPNN_2_Forwards
+        else:
+            print('Backwards GCN')
+            layer = GCNLayer_MPNN_2
+
         self.convs = torch.nn.ModuleList()
-        self.convs.append(GCNLayer_MPNN_2(in_channels, hidden_channels))
+        self.convs.append(layer(in_channels, hidden_channels))
         self.bns = torch.nn.ModuleList()
         self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
         for _ in range(num_layers - 2):
             self.convs.append(
-                GCNLayer_MPNN_2(hidden_channels, hidden_channels))
+                layer(hidden_channels, hidden_channels))
             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
-        self.convs.append(GCNLayer_MPNN_2(hidden_channels, out_channels))
+        self.convs.append(layer(hidden_channels, out_channels))
 
         self.dropout = dropout
 
@@ -168,6 +180,150 @@ class PyG_SAGE(torch.nn.Module):
 
 
 """
+GAT
+"""
+
+
+class GAT(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+                 dropout):
+        super(GCN, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(GATLayer_MPNN_2(in_channels, hidden_channels, heads=2))
+        self.bns = torch.nn.ModuleList()
+        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                GATLayer_MPNN_2(hidden_channels*2, hidden_channels, heads=2))
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        self.convs.append(GATLayer_MPNN_2(hidden_channels*2, out_channels, heads=1))
+
+        self.dropout = dropout
+
+    def reset_parameters(self):
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+
+    def forward(self, x, adj_t):
+        V = torch.arange(0, x.shape[0], dtype=torch.int64).to(device) # Create vertices
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(V, adj_t, x)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](V, adj_t, x)
+        return x.log_softmax(dim=-1)
+
+
+class PyG_GAT(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+                 dropout):
+        super(PyG_GCN, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(GATConv(in_channels, hidden_channels, heads=2))
+        self.bns = torch.nn.ModuleList()
+        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                GATConv(hidden_channels*2, hidden_channels, heads=2))
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        self.convs.append(GATConv(hidden_channels*2, out_channels))
+
+        self.dropout = dropout
+
+    def reset_parameters(self):
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+
+    def forward(self, x, adj_t):
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(x, adj_t)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, adj_t)
+        return x.log_softmax(dim=-1)
+
+
+"""
+SGC
+"""
+
+
+class SGC(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+                 dropout):
+        super(GCN, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(SGCLayer_MPNN_2(in_channels, hidden_channels, K=2))
+        self.bns = torch.nn.ModuleList()
+        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                SGCLayer_MPNN_2(hidden_channels, hidden_channels, K=2))
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        self.convs.append(SGCLayer_MPNN_2(hidden_channels, out_channels, K=2))
+
+        self.dropout = dropout
+
+    def reset_parameters(self):
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+
+    def forward(self, x, adj_t):
+        V = torch.arange(0, x.shape[0], dtype=torch.int64).to(device) # Create vertices
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(V, adj_t, x)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](V, adj_t, x)
+        return x.log_softmax(dim=-1)
+
+
+class PyG_SGC(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
+                 dropout):
+        super(PyG_GCN, self).__init__()
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(SGConv(in_channels, hidden_channels, K=2, cached=False))
+        self.bns = torch.nn.ModuleList()
+        self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                SGConv(hidden_channels, hidden_channels, K=2, cached=False))
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        self.convs.append(SGConv(hidden_channels, out_channels, K=2, cached=False))
+
+        self.dropout = dropout
+
+    def reset_parameters(self):
+        for conv in self.convs:
+            conv.reset_parameters()
+        for bn in self.bns:
+            bn.reset_parameters()
+
+    def forward(self, x, adj_t):
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(x, adj_t)
+            x = self.bns[i](x)
+            x = F.relu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, adj_t)
+        return x.log_softmax(dim=-1)
+
+
+"""
 Logger imported from
 https://github.com/snap-stanford/ogb/blob/master/examples/nodeproppred/arxiv/logger.py
 """
@@ -257,21 +413,24 @@ def test(model, data, split_idx, evaluator, is_sparse):
 
 
 def main(args=None):
-    """
-    parser = argparse.ArgumentParser(description='OGBN-Arxiv (GNN)')
-    parser.add_argument('--device', type=int, default=0)
-    parser.add_argument('--log_steps', type=int, default=1)
-    parser.add_argument('--use_sage', action='store_true')
-    parser.add_argument('--num_layers', type=int, default=3)
-    parser.add_argument('--hidden_channels', type=int, default=128)
-    parser.add_argument('--dropout', type=float, default=0.5)
-    parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--epochs', type=int, default=500)
-    parser.add_argument('--runs', type=int, default=10)
-    parser.add_argument('--catgnn', type=bool, default=True)
-    args = parser.parse_args(args=[])
+    if args is None:
+        parser = argparse.ArgumentParser(description='OGBN-Arxiv (GNN)')
+        parser.add_argument('--device', type=int, default=0)
+        parser.add_argument('--log_steps', type=int, default=1)
+        parser.add_argument('--use_sage', type=bool, default=False)
+        parser.add_argument('--use_gat', type=bool, default=False)
+        parser.add_argument('--use_sgc', type=bool, default=False)
+        parser.add_argument('--num_layers', type=int, default=3)
+        parser.add_argument('--hidden_channels', type=int, default=128)
+        parser.add_argument('--dropout', type=float, default=0.5)
+        parser.add_argument('--lr', type=float, default=0.01)
+        parser.add_argument('--epochs', type=int, default=500)
+        parser.add_argument('--runs', type=int, default=10)
+        parser.add_argument('--catgnn', type=bool, default=False)
+        parser.add_argument('--catgnn_factored', type=bool, default=False)
+        parser.add_argument('--catgnn_forward', type=bool, default=False)
+        args = parser.parse_args(args=[])
     print(args)
-    """
     
     # Prepare data (differently from the original benchmark - don't use pytorch_sparse for CatGNN)
     dataset = PygNodePropPredDataset(name='ogbn-arxiv',
@@ -279,6 +438,9 @@ def main(args=None):
     data = dataset[0]
     data.adj_t = data.adj_t.to_symmetric()
     if args.catgnn:
+        # Turn SparseTensor back to normal Tensor - I think this way to convert may cause some issues with memory
+        # TODO: take a closer look into this
+        print('Convert SparseTensor')
         data.edge_index = torch.cat((data.adj_t.coo()[0],data.adj_t.coo()[1])).view(2,-1)
         data.adj_t = None
     data = data.to(device)
@@ -297,12 +459,35 @@ def main(args=None):
             model = PyG_SAGE(data.num_features, args.hidden_channels,
                              dataset.num_classes, args.num_layers,
                              args.dropout).to(device)
+    elif args.use_gat:
+        if args.catgnn:
+            print('--CATGNN GAT--')
+            model = GAT(data.num_features, args.hidden_channels,
+                        dataset.num_classes, args.num_layers, 
+                        args.dropout).to(device)
+        else:
+            print('--PyG GAT--')
+            model = PyG_GAT(data.num_features, args.hidden_channels,
+                             dataset.num_classes, args.num_layers,
+                             args.dropout).to(device)
+    elif args.use_sgc:
+        if args.catgnn:
+            print('--CATGNN SGC--')
+            model = SGC(data.num_features, args.hidden_channels,
+                        dataset.num_classes, args.num_layers, 
+                        args.dropout).to(device)
+        else:
+            print('--PyG SGC--')
+            model = PyG_SGC(data.num_features, args.hidden_channels,
+                            dataset.num_classes, args.num_layers,
+                            args.dropout).to(device)
     else:
         if args.catgnn:
             print('--CATGNN GCN--')
             model = GCN(data.num_features, args.hidden_channels,
                         dataset.num_classes, args.num_layers,
-                        args.dropout).to(device)
+                        args.dropout, args.catgnn_factored, 
+                        args.catgnn_forward).to(device)
         else:
             print('--PyG GCN--')
             model = PyG_GCN(data.num_features, args.hidden_channels,
