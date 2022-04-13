@@ -56,8 +56,7 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
                 )  # Note that we concatenate on the last dimension (-1) (rows)
 
                 attention_coefficients = torch.nn.functional.leaky_relu(
-                    self.attention_as[h](concatenated_features),
-                    negative_slope=0.02
+                    self.attention_as[h](concatenated_features), negative_slope=0.02
                 ).exp()  # e_{i,j}
 
                 softmax_denominator = torch_scatter.scatter_add(

@@ -13,7 +13,9 @@ class BaseMPNNLayer_1(nn.Module):
 
     def _add_edge_indices(self, E: Tensor):
         # Doesn't overwrite E - this have a memory cost, maybe TODO change?
-        self.E_indexed = torch.cat((E, torch.arange(0, E.shape[1], device=E.device).view(1, -1)))
+        self.E_indexed = torch.cat(
+            (E, torch.arange(0, E.shape[1], device=E.device).view(1, -1))
+        )
 
     def s(self, e: Tensor) -> Tensor:
         """
@@ -78,7 +80,7 @@ class BaseMPNNLayer_1(nn.Module):
 
         Returns:
             Tensor: features
-        """        
+        """
         return self.X[v]
 
     # Integral transform primitives (backwards)
@@ -110,7 +112,9 @@ class BaseMPNNLayer_1(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def transform_backwards(self, V: Tensor, E: Tensor, X: Tensor, kernel_factor: bool = False, validate_input: bool = True) -> Tensor:
+    def transform_backwards(self, V: Tensor, E: Tensor, X: Tensor,
+        kernel_factor: bool = False, validate_input: bool = True,
+    ) -> Tensor:
         """
         Integral transform implementation (backwards)
 
@@ -118,9 +122,9 @@ class BaseMPNNLayer_1(nn.Module):
             V (Tensor): set of nodes of shape (-1,) (each node from 0 to |V|-1)
             E (Tensor): set of edges (sender to receiver) of shape (2,-1)
             X (Tensor): set of features for each node in V of shape (|V|,num_features)
-            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a 
+            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a
             receiver-dependent kernel. Defaults to False.
-            validate_input (bool, optional): whether to validate input before performing 
+            validate_input (bool, optional): whether to validate input before performing
             integral transform. Defaults to False.
 
         Returns:
@@ -128,7 +132,7 @@ class BaseMPNNLayer_1(nn.Module):
         """
         if validate_input:
             self._validate_input(V, E, X)
-        
+
         # Span construction
         self._add_edge_indices(E)
         self._set_preimages(V)
@@ -152,30 +156,31 @@ class BaseMPNNLayer_1(nn.Module):
 
     # Integral transform primitives (forwards)
 
-    def transform_forwards(self, V: Tensor, E: Tensor, X: Tensor, kernel_factor: bool = False, validate_input: bool = True) -> Tensor:
+    def transform_forwards(self, V: Tensor, E: Tensor, X: Tensor,
+        kernel_factor: bool = False, validate_input: bool = True,
+    ) -> Tensor:
         # Forwards implementaton is not supported (no point because it is already slow)
         raise NotImplementedError
-
 
     # Other utils
 
     def _validate_input(self, V, E, X):
         # Firstly assert input types
-        assert type(V) == torch.Tensor, f'V must be a torch.Tensor, not {type(V)}'
-        assert type(E) == torch.Tensor, f'E must be a torch.Tensor, not {type(E)}'
-        assert type(X) == torch.Tensor, f'X must be a torch.Tensor, not {type(X)}'
+        assert type(V) == torch.Tensor, f"V must be a torch.Tensor, not {type(V)}"
+        assert type(E) == torch.Tensor, f"E must be a torch.Tensor, not {type(E)}"
+        assert type(X) == torch.Tensor, f"X must be a torch.Tensor, not {type(X)}"
 
         # Then assert tensor properties
-        assert V.dtype == torch.int64, f'V.dtype must be torch.int64, not {V.dtype}'
-        assert len(V.shape) == 1, f'V must be a 1D tensor'
-        assert V.shape[0] != 0, f'V cannot be empty'
+        assert V.dtype == torch.int64, f"V.dtype must be torch.int64, not {V.dtype}"
+        assert len(V.shape) == 1, f"V must be a 1D tensor"
+        assert V.shape[0] != 0, f"V cannot be empty"
 
-        assert E.dtype == torch.int64, f'E.dtype must be torch.int64, not {E.dtype}'
-        assert len(E.shape) == 2, f'V must be a 2D tensor'
-        assert E.shape[0] == 2, f'E must have two rows/must have shape of (2,-1)'
-        assert E.shape[1] != 0, f'E cannot be empty'
+        assert E.dtype == torch.int64, f"E.dtype must be torch.int64, not {E.dtype}"
+        assert len(E.shape) == 2, f"V must be a 2D tensor"
+        assert E.shape[0] == 2, f"E must have two rows/must have shape of (2,-1)"
+        assert E.shape[1] != 0, f"E cannot be empty"
 
-        assert X.shape[0] != 0, f'X cannot be empty'
+        assert X.shape[0] != 0, f"X cannot be empty"
 
         # Now assert that the shapes of V, E and X together make sense
-        assert V.shape[0] == X.shape[0], f'V must have the same shape as X'
+        assert V.shape[0] == X.shape[0], f"V must have the same shape as X"

@@ -40,7 +40,7 @@ class BaseMPNNLayer_2(nn.Module):
     def t_1(self, V: Tensor) -> Tuple[Tensor, Tensor]:
         """
         t^{-1}: V -> P(E)
-        Get preimages of nodes in V. This chooses from all E, because which E to use 
+        Get preimages of nodes in V. This chooses from all E, because which E to use
         can be selected by pullback later.
 
         Args:
@@ -60,8 +60,8 @@ class BaseMPNNLayer_2(nn.Module):
 
         Args:
             E (Tensor): set of edges (sender to receiver) of shape (2,-1)
-            masking_required (bool, optional): if True, then masking may be required if the 
-            opposite edge does not exist in the graph (e.x. for a directed graph, a -> b may 
+            masking_required (bool, optional): if True, then masking may be required if the
+            opposite edge does not exist in the graph (e.x. for a directed graph, a -> b may
             exist, but b -> a may not exist).
             Defaults to False.
 
@@ -83,13 +83,13 @@ class BaseMPNNLayer_2(nn.Module):
             # Inverse the mask (1 to 0 and 0 to 1)
             inverse_values = (values - 1) * (-1)
 
-            # Assign -1 to edges that don't exist. TODO: to make this work in 
-            # user implementation, we also need to append extra row to X which 
+            # Assign -1 to edges that don't exist. TODO: to make this work in
+            # user implementation, we also need to append extra row to X which
             # contains the "default" value (e.x. torch.nan for Bellman-Ford)
             return flipped_E.masked_fill(inverse_values, -1)
         else:
-            # No masking is required (for example in GCN or GAT when we pullback 
-            # features from sender to the edge, we don't care if there is an edge 
+            # No masking is required (for example in GCN or GAT when we pullback
+            # features from sender to the edge, we don't care if there is an edge
             # from receiver back to sender)
             return flipped_E
 
@@ -147,13 +147,8 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X: Tensor, output: Tensor) -> Tensor:
         raise NotImplementedError
 
-    def transform_backwards(
-        self,
-        V: Tensor,
-        E: Tensor,
-        X: Tensor,
-        kernel_factor: bool = False,
-        validate_input: bool = False,
+    def transform_backwards(self, V: Tensor, E: Tensor, X: Tensor,
+        kernel_factor: bool = False, validate_input: bool = False,
     ) -> Tensor:
         """
         Integral transform implementation (backwards)
@@ -162,9 +157,9 @@ class BaseMPNNLayer_2(nn.Module):
             V (Tensor): set of nodes of shape (-1,) (each node from 0 to |V|-1)
             E (Tensor): set of edges (sender to receiver) of shape (2,-1)
             X (Tensor): set of features for each node in V of shape (|V|,num_features)
-            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a 
+            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a
             receiver-dependent kernel. Defaults to False.
-            validate_input (bool, optional): whether to validate input before performing 
+            validate_input (bool, optional): whether to validate input before performing
             integral transform. Defaults to False.
 
         Returns:
@@ -180,7 +175,7 @@ class BaseMPNNLayer_2(nn.Module):
         # Prepare integral transform
         pullback = self.define_pullback(self.f)  # E -> R
         if kernel_factor:
-            # TODO: if masking is required, this would hide extra edges as implementation detail. 
+            # TODO: if masking is required, this would hide extra edges as implementation detail.
             # This is not needed for our use cases so far.
             # self.X = torch.cat((self.X, torch.ones(1,*self.X.shape[1:])*torch.inf),dim=0)
 
@@ -217,13 +212,8 @@ class BaseMPNNLayer_2(nn.Module):
     def update(self, X, output):
         raise NotImplementedError
 
-    def transform_forwards(
-        self,
-        V: Tensor,
-        E: Tensor,
-        X: Tensor,
-        kernel_factor: bool = False,
-        validate_input: bool = False,
+    def transform_forwards(self, V: Tensor, E: Tensor, X: Tensor,
+        kernel_factor: bool = False, validate_input: bool = False,
     ) -> Tensor:
         """
         Integral transform implementation (forwards)
@@ -232,9 +222,9 @@ class BaseMPNNLayer_2(nn.Module):
             V (Tensor): set of nodes of shape (-1,) (each node from 0 to |V|-1)
             E (Tensor): set of edges (sender to receiver) of shape (2,-1)
             X (Tensor): set of features for each node in V of shape (|V|,num_features)
-            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a 
+            kernel_factor (bool, optional): whether to factorise the kernel arrow to have a
             receiver-dependent kernel. Defaults to False.
-            validate_input (bool, optional): whether to validate input before performing 
+            validate_input (bool, optional): whether to validate input before performing
             integral transform. Defaults to False.
 
         Returns:
@@ -250,7 +240,7 @@ class BaseMPNNLayer_2(nn.Module):
         pulledback_features, chosen_E = self.pullback(E, self.f)
 
         if kernel_factor:
-            # Not implemented at the moment (I don't particularly like forwards and I think 
+            # Not implemented at the moment (I don't particularly like forwards and I think
             # backwards implementation is better)
             raise NotImplementedError
         else:
