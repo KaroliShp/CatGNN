@@ -1,8 +1,8 @@
 # CatGNN 🐱
 
-A prototype for Category Theory-based GNN Library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2019)](https://arxiv.org/abs/2203.15544) developed for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
+Prototype for a category theory-based GNN library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2019)](https://arxiv.org/abs/2203.15544) submitted as coursework for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
 
-The goal of CatGNN is to provide a generic GNN implementation using a new set of primitive operators coming from category theory and abstract algebra. User only needs to provide a specific implementation of the new primitives to implement any GNN.
+The goal of CatGNN is to provide a generic GNN template using a new set of primitive operators coming from category theory and abstract algebra. The user only needs to provide a specific implementation of the new primitives to implement any GNN.
 
 ## Basic example
 
