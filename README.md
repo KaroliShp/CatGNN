@@ -87,7 +87,7 @@ $ pip install -r requirements.txt
 
 ## Implementation details & benchmarking
 
-For an explanation of each primitive and the base class implementation, see the report pdf.
+For an explanation of each primitive and the base class implementation, see the report pdf. For benchmarking code, see attached Google Colab notebooks.
 
 ## Tests
 
