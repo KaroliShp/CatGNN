@@ -17,6 +17,7 @@ import torch.nn.functional as F
 import torch_geometric.transforms as T
 from torch_geometric.nn import GCNConv, SAGEConv, GATConv, SGConv
 
+from catgnn.layers.gcn.gcn_mpnn_1 import GCNLayer_MPNN_1
 from catgnn.layers.gcn.gcn_mpnn_2 import GCNLayer_MPNN_2, GCNLayer_Factored_MPNN_2, GCNLayer_MPNN_2_Forwards
 from catgnn.layers.gat.gat_mpnn_2 import GATLayer_MPNN_2
 from catgnn.layers.sage.sage_mpnn_2 import SAGELayer_MPNN_2
@@ -34,10 +35,13 @@ GCN
 
 class GCN(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dropout, factored=False, forwards=False):
+                 dropout, factored=False, forwards=False, mpnn_1=False):
         super(GCN, self).__init__()
 
-        if factored:
+        if mpnn_1:
+            print('MPNN_1')
+            layer = GCNLayer_MPNN_1
+        elif factored:
             print('Factored GCN')
             layer = GCNLayer_Factored_MPNN_2
         elif forwards:
@@ -137,7 +141,7 @@ class SAGE(torch.nn.Module):
             bn.reset_parameters()
 
     def forward(self, x, adj_t):
-        V = torch.arange(0, x.shape[0], dtype=torch.int64) # Create vertices
+        V = torch.arange(0, x.shape[0], dtype=torch.int64).to(device) # Create vertices
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(V, adj_t, x)
             x = self.bns[i](x)
@@ -429,9 +433,15 @@ def main(args=None):
         parser.add_argument('--catgnn', type=bool, default=True)
         parser.add_argument('--catgnn_factored', type=bool, default=False)
         parser.add_argument('--catgnn_forward', type=bool, default=False)
+        parser.add_argument('--catgnn_mpnn_1', type=bool, default=False)
         args = parser.parse_args(args=[])
     print(args)
     
+    """
+    print(torch.cuda.list_gpu_processes(device=device))
+    print(torch.cuda.memory_allocated(device=device))
+    """
+
     # Prepare data (differently from the original benchmark - don't use pytorch_sparse for CatGNN)
     dataset = PygNodePropPredDataset(name='ogbn-arxiv',
                                     transform=T.ToSparseTensor())
@@ -444,9 +454,21 @@ def main(args=None):
         data.edge_index = torch.cat((data.adj_t.coo()[0],data.adj_t.coo()[1])).view(2,-1)
         data.adj_t = None
     data = data.to(device)
+    
+    """
+    print(torch.cuda.list_gpu_processes(device=device))
+    print(torch.cuda.memory_summary(device=device))
+    print(torch.cuda.memory_allocated(device=device))
+    """
 
     split_idx = dataset.get_idx_split()
     train_idx = split_idx['train'].to(device)
+
+    """
+    print(torch.cuda.list_gpu_processes(device=device))
+    print(torch.cuda.memory_summary(device=device))
+    print(torch.cuda.memory_allocated(device=device))
+    """
 
     if args.use_sage:
         if args.catgnn:
@@ -487,7 +509,7 @@ def main(args=None):
             model = GCN(data.num_features, args.hidden_channels,
                         dataset.num_classes, args.num_layers,
                         args.dropout, args.catgnn_factored, 
-                        args.catgnn_forward).to(device)
+                        args.catgnn_forward, args.catgnn_mpnn_1).to(device)
         else:
             print('--PyG GCN--')
             model = PyG_GCN(data.num_features, args.hidden_channels,
@@ -501,9 +523,22 @@ def main(args=None):
         model.reset_parameters()
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         for epoch in range(1, 1 + args.epochs):
+            """
+            print(torch.cuda.list_gpu_processes(device=device))
+            print(torch.cuda.memory_summary(device=device))
+            print(torch.cuda.memory_allocated(device=device))
+            """
+            
             start = timer()
             loss = train(model, data, train_idx, optimizer, not args.catgnn)
             end = timer()
+
+            """
+            print(torch.cuda.list_gpu_processes(device=device))
+            print(torch.cuda.memory_summary(device=device))
+            print(torch.cuda.memory_allocated(device=device))
+            print(5/0)
+            """
 
             result = test(model, data, split_idx, evaluator, not args.catgnn)
             logger.add_result(run, result)

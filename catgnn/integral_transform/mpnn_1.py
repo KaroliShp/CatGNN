@@ -149,7 +149,7 @@ class BaseMPNNLayer_1(nn.Module):
         aggregator = self.define_aggregator(pushforward)  # V -> R
 
         # Apply the integral transform to each node in the graph, then finish with update step
-        updated_features = torch.Tensor(device=V.device)
+        updated_features = torch.Tensor().to(V.device)
         for v in V:
             updated_features = torch.hstack((updated_features, aggregator(v)))
         return self.update(X, updated_features.view(X.shape[0], -1))

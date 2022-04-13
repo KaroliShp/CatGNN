@@ -50,7 +50,7 @@ class GIN_2(torch.nn.Module):
 
     def forward(self, data):
         X, E, batch = data.x, data.edge_index, data.batch
-        V = torch.arange(0, X.shape[0], dtype=torch.int64)  # Create vertices
+        V = torch.arange(0, X.shape[0], dtype=torch.int64, device=E.device)  # Create vertices
         X = self.conv1(V, E, X)
         for conv in self.convs:
             X = conv(V, E, X)

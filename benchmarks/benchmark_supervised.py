@@ -23,7 +23,7 @@ def run_benchmark(
     lr_decay_factor=0.5,
     lr_decay_step_size=50,
     num_epochs=100,
-    debug=True,
+    debug=False,
     **kwargs
 ):
     dataset = get_TU_dataset(name)
@@ -44,22 +44,25 @@ def run_benchmark(
     )
 
 
-def run_paper_benchmarks(name, num_layers, num_hidden_units):
-    """
-    run_benchmark(name, GIN0_2, num_layers, num_hidden_units)
-    run_benchmark(name, PyG_GIN0, num_layers, num_hidden_units)
-    """
-    """
-    run_benchmark(name, GIN_2, num_layers, num_hidden_units)
-    run_benchmark(name, PyG_GIN, num_layers, num_hidden_units)
-    """
-    """
+
+def run_pytorch_benchmarks_gcn(name, num_layers, num_hidden_units):
     run_benchmark(name, GCN_2, num_layers, num_hidden_units)
     run_benchmark(name, PyG_GCN, num_layers, num_hidden_units)
-    """
+
+
+def run_pytorch_benchmarks_gin_0(name, num_layers, num_hidden_units):
+    run_benchmark(name, GIN0_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GIN0, num_layers, num_hidden_units)
+
+
+def run_pytorch_benchmarks_gin(name, num_layers, num_hidden_units):
+    run_benchmark(name, GIN_2, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GIN, num_layers, num_hidden_units)
+
+def run_pytorch_benchmarks_sage(name, num_layers, num_hidden_units):
     run_benchmark(name, GraphSAGE_2, num_layers, num_hidden_units)
-    # run_benchmark(name, PyG_GraphSAGE, num_layers, num_hidden_units)
+    run_benchmark(name, PyG_GraphSAGE, num_layers, num_hidden_units)
 
 
 if __name__ == "__main__":
-    run_paper_benchmarks("REDDIT-BINARY", 1, 16)
+    run_pytorch_benchmarks_gcn("MUTAG", 1, 16)
