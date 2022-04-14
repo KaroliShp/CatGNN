@@ -43,7 +43,7 @@ class GraphSAGE_2(torch.nn.Module):
         X = F.relu(self.lin1(X))
         X = F.dropout(X, p=0.5, training=self.training)
         X = self.lin2(X)
-        return X  # Log softmax
+        return torch.nn.functional.log_softmax(X, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__
@@ -75,7 +75,7 @@ class PyG_GraphSAGE(torch.nn.Module):
         x = F.relu(self.lin1(x))
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.lin2(x)
-        return F.log_softmax(x, dim=-1)
+        return torch.nn.functional.log_softmax(x, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__

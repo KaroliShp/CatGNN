@@ -57,7 +57,8 @@ class GIN_2(torch.nn.Module):
         X = torch_geometric.nn.global_mean_pool(X, batch)
         X = torch.nn.functional.relu(self.lin1(X))
         X = torch.nn.functional.dropout(X, p=0.5, training=self.training)
-        return self.lin2(X)  # Used to be log softmax
+        X = self.lin2(X)
+        return torch.nn.functional.log_softmax(X, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__
@@ -108,7 +109,8 @@ class PyG_GIN(torch.nn.Module):
         x = torch_geometric.nn.global_mean_pool(x, batch)
         x = torch.nn.functional.relu(self.lin1(x))
         x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        return self.lin2(x)  # Used to be log softmax
+        x = self.lin2(x)
+        return torch.nn.functional.log_softmax(x, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__
@@ -166,7 +168,8 @@ class GIN0_2(torch.nn.Module):
         X = torch_geometric.nn.global_mean_pool(X, batch)
         X = torch.nn.functional.relu(self.lin1(X))
         X = torch.nn.functional.dropout(X, p=0.5, training=self.training)
-        return self.lin2(X)  # Used to be log softmax
+        X = self.lin2(X)
+        return torch.nn.functional.log_softmax(X, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__
@@ -217,7 +220,8 @@ class PyG_GIN0(torch.nn.Module):
         x = torch_geometric.nn.global_mean_pool(x, batch)
         x = torch.nn.functional.relu(self.lin1(x))
         x = torch.nn.functional.dropout(x, p=0.5, training=self.training)
-        return self.lin2(x)  # Used to be log softmax
+        x = self.lin2(x)
+        return torch.nn.functional.log_softmax(x, dim=-1)
 
     def __repr__(self):
         return self.__class__.__name__

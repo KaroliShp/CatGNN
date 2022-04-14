@@ -1,14 +1,8 @@
-from benchmarks.utils.train_semi_supervised import train_eval_loop
-from catgnn.datasets.planetoid import PlanetoidDataset
 from catgnn.datasets.pyg_supervised_dataset import get_TU_dataset
 from benchmarks.utils.pyg_train_supervised import cross_validation_with_val_set
 from benchmarks.models.supervised.gcn_models import GCN_2, PyG_GCN
 from benchmarks.models.supervised.gin_models import GIN_2, PyG_GIN, GIN0_2, PyG_GIN0
 from benchmarks.models.supervised.sage_models import GraphSAGE_2, PyG_GraphSAGE
-from benchmarks.utils.analyse_performance import (
-    analyse_repeated_benchmark,
-    stringify_statistics,
-)
 
 
 def run_benchmark(

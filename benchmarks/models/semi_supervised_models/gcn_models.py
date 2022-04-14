@@ -148,16 +148,11 @@ Paper benchmarking (architecture choice from PyG)
 
 
 class GCN_1_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, factored=False):
+    def __init__(self, input_dim, output_dim):
         super().__init__()
-        if factored:
-            print("Factored implementation")
-            self.conv1 = GCNLayer_Factored_MPNN_1(input_dim, 16)
-            self.conv2 = GCNLayer_Factored_MPNN_1(16, output_dim)
-        else:
-            print("Standard implementation")
-            self.conv1 = GCNLayer_MPNN_1(input_dim, 16)
-            self.conv2 = GCNLayer_MPNN_1(16, output_dim)
+        print("Standard implementation")
+        self.conv1 = GCNLayer_MPNN_1(input_dim, 16)
+        self.conv2 = GCNLayer_MPNN_1(16, output_dim)
 
     def forward(self, V, E, X):
         H = nn.functional.relu(self.conv1(V, E, X))

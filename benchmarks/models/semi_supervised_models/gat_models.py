@@ -10,7 +10,7 @@ Paper benchmarking (architecture choice from PyG)
 
 
 class GAT_2_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, heads=8, forwards=False):
+    def __init__(self, input_dim, output_dim, heads=1, forwards=False):
         super().__init__()
         if forwards:
             raise NotImplementedError
@@ -30,7 +30,7 @@ class GAT_2_Paper(torch.nn.Module):
 
 
 class PyG_GAT_Paper(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, heads=8):
+    def __init__(self, input_dim, output_dim, heads=1):
         super().__init__()
         self.conv1 = torch_geometric.nn.conv.GATConv(
             input_dim, 8, heads=heads, add_self_loops=True

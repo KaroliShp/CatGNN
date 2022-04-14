@@ -22,7 +22,7 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix
-        # GAT paper: " In all our experiments, these will be exactly the first-order neighbors of i (including i)"
+        # GAT paper: "In all our experiments, these will be exactly the first-order neighbors of i (including i)"
         E = add_self_loops(V, E)
 
         # TODO: add dropout within the layer?
@@ -51,34 +51,16 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
             updated_features = None
             for h in range(self.heads):
                 # Attention: calculate a_{i,j}
-                concatenated_features = torch.cat(
-                    (r_sender, r_receiver), -1
-                )  # Note that we concatenate on the last dimension (-1) (rows)
-
-                attention_coefficients = torch.nn.functional.leaky_relu(
-                    self.attention_as[h](concatenated_features), negative_slope=0.02
-                ).exp()  # e_{i,j}
-
-                softmax_denominator = torch_scatter.scatter_add(
-                    attention_coefficients, self.t(E), dim=0
-                )  # Must be same shape as X
+                attention_coefficients = torch.nn.functional.leaky_relu(self.attention_as[h](torch.cat((r_sender,r_receiver), -1)), negative_slope=0.02).exp()  # e_{i,j}, note that we concatenate on the last dimension (-1) (rows)
 
                 softmaxed_coefficients = (
-                    attention_coefficients / softmax_denominator[self.t(E)]
+                    attention_coefficients / torch_scatter.scatter_add(attention_coefficients, self.t(E), dim=0)[self.t(E)]
                 )
 
                 if updated_features is None:
-                    updated_features = softmaxed_coefficients * self.mlp_msgs[h](
-                        r_sender
-                    )
+                    updated_features = softmaxed_coefficients * self.mlp_msgs[h](r_sender)
                 else:
-                    updated_features = torch.cat(
-                        (
-                            updated_features,
-                            softmaxed_coefficients * self.mlp_msgs[h](r_sender),
-                        ),
-                        dim=-1,
-                    )
+                    updated_features = torch.cat((updated_features, softmaxed_coefficients * self.mlp_msgs[h](r_sender)),dim=-1)
 
             # Perform kernel transform
             return updated_features

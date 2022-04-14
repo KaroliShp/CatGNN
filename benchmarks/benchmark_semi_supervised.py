@@ -1,11 +1,7 @@
 from benchmarks.utils.train_semi_supervised import train_eval_loop
 import torch
 from catgnn.datasets.planetoid import PlanetoidDataset
-import torch_geometric
 from benchmarks.models.semi_supervised_models.gcn_models import (
-    GCN_1,
-    GCN_2,
-    PyG_GCN,
     GCN_1_Paper,
     GCN_2_Paper,
     PyG_GCN_Paper,
@@ -18,7 +14,6 @@ from benchmarks.models.semi_supervised_models.gat_models import (
     GAT_2_Paper,
     PyG_GAT_Paper,
 )
-import numpy as np
 from benchmarks.utils.analyse_performance import (
     analyse_repeated_benchmark,
     stringify_statistics,
@@ -95,11 +90,13 @@ def repeat_benchmark(repeat, func, experiment_name, *args, **kwargs):
 
 def run_pytorch_benchmarks_gcn(name="Cora", repeat=2):
     # Public splits
+    """
     experiment_0 = f'{name} CatGNN GCN (1)'
     train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, experiment_0, name, GCN_1_Paper)
 
     print('')
     print(stringify_statistics(experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0))
+    """
 
     experiment_1 = f'{name} CatGNN GCN (2), public split'
     train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, name, GCN_2_Paper)
@@ -132,11 +129,12 @@ def run_pytorch_benchmarks_sgc(name="Cora", repeat=2):
     print(stringify_statistics(experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1))
 
 
-def run_pytorch_benchmarks_gat(name="Cora", repeat=2):
-    experiment_0 = "Cora CatGNN GAT (2), public split"
-    train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(
-        repeat, run_benchmark, experiment_0, name, GAT_2_Paper
-    )
+def run_pytorch_benchmarks_gat(name="Cora", repeat=2, only_pyg=False):
+    if not only_pyg:
+        experiment_0 = "Cora CatGNN GAT (2), public split"
+        train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(
+            repeat, run_benchmark, experiment_0, name, GAT_2_Paper
+        )
 
     experiment_1 = "Cora PyG GAT, public split"
     train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(
@@ -144,11 +142,12 @@ def run_pytorch_benchmarks_gat(name="Cora", repeat=2):
     )
 
     print("")
-    print(
-        stringify_statistics(
-            experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0
+    if not only_pyg:
+        print(
+            stringify_statistics(
+                experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0
+            )
         )
-    )
     print(
         stringify_statistics(
             experiment_1, train_res_1, val_res_1, test_res_1, runtime_res_1

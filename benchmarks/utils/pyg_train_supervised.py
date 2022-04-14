@@ -115,7 +115,7 @@ def train(model, optimizer, loader):
         optimizer.zero_grad()
         data = data.to(device)
         out = model(data)
-        loss = F.cross_entropy(out, data.y.view(-1))
+        loss = F.nll_loss(out, data.y.view(-1))
         loss.backward()
         total_loss += loss.item() * num_graphs(data)
         optimizer.step()
@@ -142,5 +142,5 @@ def eval_loss(model, loader):
         data = data.to(device)
         with torch.no_grad():
             out = model(data)
-        loss += F.cross_entropy(out, data.y.view(-1), reduction='sum').item()
+        loss += F.nll_loss(out, data.y.view(-1), reduction='sum').item()
     return loss / len(loader.dataset)
