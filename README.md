@@ -48,8 +48,7 @@ class BasicMPNNLayer(BaseMPNNLayer_2):
     def forward(self, V, E, X):
         # USER IMPLEMENTATION
         # Perform integral transform by passing V, E and X
-        out = self.transform_backwards(V, E, X, kernel_factor=False)
-        return out
+        return self.transform_backwards(V, E, X, kernel_factor=False)
 
     def define_pullback(self, f):
         def pullback(E):
