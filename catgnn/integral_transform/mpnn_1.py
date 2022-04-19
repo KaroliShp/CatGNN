@@ -6,13 +6,20 @@ from torch import Tensor
 
 
 class BaseMPNNLayer_1(nn.Module):
+    """
+    Integral transform base class for basic (naive) implementation from 
+    mini-project section 4.1. Barely used for anything except GCN because it is 
+    extremely slow. Provided to show incremental upgrade to implementation and
+    associated gains.
+    """
+
     def __init__(self):
         super(BaseMPNNLayer_1, self).__init__()
 
     # Directed graph span construction
 
     def _add_edge_indices(self, E: Tensor):
-        # Doesn't overwrite E - this have a memory cost, maybe TODO change?
+        # Doesn't overwrite E - this has a memory cost, maybe TODO change?
         self.E_indexed = torch.cat(
             (E, torch.arange(0, E.shape[1], device=E.device).view(1, -1))
         )
@@ -92,12 +99,12 @@ class BaseMPNNLayer_1(nn.Module):
         return pullback
 
     def define_kernel(self, pullback):
-        def kernel_transformation(e):
+        def kernel(e):
             raise NotImplementedError
 
-        return kernel_transformation
+        return kernel
 
-    def define_pushforward(self, kernel_transformation):
+    def define_pushforward(self, kernel):
         def pushforward(v):
             raise NotImplementedError
 
@@ -144,8 +151,8 @@ class BaseMPNNLayer_1(nn.Module):
             # Factoring kernel for MPNN_1 is not supported (no point because it is already slow)
             raise NotImplementedError
         else:
-            kernel_transformation = self.define_kernel(pullback)  # E -> R
-        pushforward = self.define_pushforward(kernel_transformation)  # V -> N[R]
+            kernel = self.define_kernel(pullback)  # E -> R
+        pushforward = self.define_pushforward(kernel)  # V -> N[R]
         aggregator = self.define_aggregator(pushforward)  # V -> R
 
         # Apply the integral transform to each node in the graph, then finish with update step

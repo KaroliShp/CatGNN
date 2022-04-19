@@ -7,10 +7,19 @@ from catgnn.utils import add_self_loops, get_degrees
 
 
 class GCNLayer_MPNN_2(BaseMPNNLayer_2):
+    """
+    GCN layer using standard (backwards) implementation with BaseMPNNLayer_2
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
         self.mlp_msg = nn.Linear(in_dim, out_dim, bias=False)  # \psi
+        self.mlp_update = nn.LeakyReLU()  # \phi
 
     def forward(self, V, E, X):
         # Add self-loops to the adjacency matrix.
@@ -62,6 +71,16 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
 
 class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
+    """
+    GCN layer using standard (backwards) implementation with BaseMPNNLayer_2 
+    and unnecessary factoring of the kernel arrow, i.e. receiver features are
+    simply ignored
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
@@ -124,6 +143,14 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
 
 
 class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
+    """
+    GCN layer using forwards implementation with BaseMPNNLayer_2
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
@@ -144,7 +171,7 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
     def pullback(self, E, f):
         return f(self.s(E)), E
 
-    def kernel_transformation(self, E, pulledback_features):
+    def kernel(self, E, pulledback_features):
         return self.norm.view(-1, 1) * self.mlp_msg(pulledback_features)
 
     def pushforward(self, V, edge_messages):

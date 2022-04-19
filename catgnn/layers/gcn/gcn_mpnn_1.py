@@ -6,6 +6,14 @@ from catgnn.utils import add_self_loops, get_degrees
 
 
 class GCNLayer_MPNN_1(BaseMPNNLayer_1):
+    """
+    GCN layer using standard (backwards) implementation with BaseMPNNLayer_1
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
@@ -30,19 +38,19 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
         return pullback
 
     def define_kernel(self, pullback):
-        def kernel_transformation(e):
+        def kernel(e):
             return self.norm[e[2]] * self.mlp_msg(pullback(e))
 
-        return kernel_transformation
+        return kernel
 
-    def define_pushforward(self, kernel_transformation):
+    def define_pushforward(self, kernel):
         def pushforward(v):
             pE = self.t_1(v)
 
             # Now we need to apply edge_messages function for each element of pE
             bag_of_messages = []
             for e in pE:
-                bag_of_messages.append(kernel_transformation(e))
+                bag_of_messages.append(kernel(e))
             return bag_of_messages
 
         return pushforward

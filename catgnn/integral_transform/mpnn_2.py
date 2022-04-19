@@ -6,6 +6,12 @@ from torch import Tensor
 
 
 class BaseMPNNLayer_2(nn.Module):
+    """
+    Integral transform base class for improved implementation from 
+    mini-project sections 4.2, 4.3. Contains both standard (backwards) 
+    implementation (section 4.2) and forwards implementation (section 4.3).
+    """
+
     def __init__(self):
         super(BaseMPNNLayer_2, self).__init__()
 
@@ -72,9 +78,6 @@ class BaseMPNNLayer_2(nn.Module):
         flipped_E = torch.flip(E, [0])
 
         if masking_required:
-            # Need to check that all opposite edges exist so that f assigns correct value when
-            # self.s(flipped_E) gives the sender
-
             # These values show that the edge at that index in flipped_E exists in E
             values, _ = torch.max(
                 (E == flipped_E.T.unsqueeze(-1)).all(dim=1).int(), dim=1
@@ -180,10 +183,10 @@ class BaseMPNNLayer_2(nn.Module):
             # self.X = torch.cat((self.X, torch.ones(1,*self.X.shape[1:])*torch.inf),dim=0)
 
             product_arrow = self.define_kernel_factor_1(pullback)  # (E -> R) x (E -> R)
-            kernel_transformation = self.define_kernel_factor_2(product_arrow)  # E -> R
+            kernel = self.define_kernel_factor_2(product_arrow)  # E -> R
         else:
-            kernel_transformation = self.define_kernel(pullback)  # E -> R
-        pushforward = self.define_pushforward(kernel_transformation)  # V -> N[R]
+            kernel = self.define_kernel(pullback)  # E -> R
+        pushforward = self.define_pushforward(kernel)  # V -> N[R]
         aggregator = self.define_aggregator(pushforward)  # V -> R
 
         # Apply the integral transform to each node in the graph, then finish with update step
@@ -200,7 +203,7 @@ class BaseMPNNLayer_2(nn.Module):
     def kernel_factor_2(self, E, kernel_factor_1):
         raise NotImplementedError
 
-    def kernel_transformation(self, E, pulledback_features):
+    def kernel(self, E, pulledback_features):
         raise NotImplementedError
 
     def pushforward(self, V, edge_messages):
@@ -247,7 +250,7 @@ class BaseMPNNLayer_2(nn.Module):
             # Do the kernel transformation on pulled node features. We need chosen_E to know
             # which pulled features belong to which edges, because we may choose edges
             # arbitrarily. These edge messages are edge messages only for the pulled features
-            edge_messages = self.kernel_transformation(chosen_E, pulledback_features)
+            edge_messages = self.kernel(chosen_E, pulledback_features)
 
         # For each receiver, go over its preimage edges and collect the edge messages into bags
         # We can select which receivers we want here? Or later for aggregator? TODO

@@ -5,6 +5,14 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 
 
 class SAGELayer_MPNN_2(BaseMPNNLayer_2):
+    """
+    SAGE layer using standard (backwards) implementation with BaseMPNNLayer_2
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+    """
+
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 

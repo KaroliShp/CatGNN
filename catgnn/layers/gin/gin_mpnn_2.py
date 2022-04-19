@@ -7,6 +7,16 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 
 
 class GINLayer_MPNN_2(BaseMPNNLayer_2):
+    """
+    GIN layer using standard (backwards) implementation with BaseMPNNLayer_2
+
+    Args:
+        mlp_update: update function
+        device: torch device (CPU or GPU)
+        eps (float): \epsilon
+        train_eps (bool): whether to train \epsilon or not
+    """
+
     def __init__(self, mlp_update, device, eps: float = 0.0, train_eps: bool = True):
         super().__init__()
 

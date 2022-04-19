@@ -7,6 +7,15 @@ from catgnn.utils import add_self_loops, get_degrees
 
 
 class SGCLayer_MPNN_2(BaseMPNNLayer_2):
+    """
+    SGC layer using standard (backwards) implementation with BaseMPNNLayer_2
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+        K (int): K from the paper (see code comments for usage)
+    """
+
     def __init__(self, in_dim: int, out_dim: int, K: int = 1):
         super().__init__()
 
@@ -21,7 +30,7 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
         self.degrees = get_degrees(V, E)
         self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
-        # Do integral transform (just like PyG - not sure if this is the best way to do it?)
+        # Do integral transform (this is done like in PyG - not sure if this is the best way to do it?)
         # Why then not just always let K=1 and do this by stacking the layers? Why K as an argument?
         out = self.transform_backwards(V, E, X)
         for k in range(self.K - 1):

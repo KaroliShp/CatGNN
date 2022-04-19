@@ -7,6 +7,15 @@ from catgnn.utils import add_self_loops
 
 
 class GATLayer_MPNN_2(BaseMPNNLayer_2):
+    """
+    GAT layer using standard (backwards) implementation with BaseMPNNLayer_2
+
+    Args:
+        in_dim (int): input dimension for the message linear layer
+        out_dim (int): output dimension for the message linear layer
+        heads (int): number of attention heads
+    """
+
     def __init__(self, in_dim: int, out_dim: int, heads: int = 1):
         # Start with only 1 attention head for simplicity
         super().__init__()
@@ -48,10 +57,12 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
             # Get features of both senders and receivers
             r_sender, r_receiver = kernel_factor_1(E)
 
+            # Attention: calculate a_{i,j} for each attention head
+            # TODO: replace loop with an extra dimension
             updated_features = None
             for h in range(self.heads):
-                # Attention: calculate a_{i,j}
-                attention_coefficients = torch.nn.functional.leaky_relu(self.attention_as[h](torch.cat((r_sender,r_receiver), -1)), negative_slope=0.02).exp()  # e_{i,j}, note that we concatenate on the last dimension (-1) (rows)
+                # e_{i,j}, note that we concatenate on the last dimension (-1) (rows)
+                attention_coefficients = torch.nn.functional.leaky_relu(self.attention_as[h](torch.cat((r_sender,r_receiver), -1)), negative_slope=0.02).exp()
 
                 softmaxed_coefficients = (
                     attention_coefficients / torch_scatter.scatter_add(attention_coefficients, self.t(E), dim=0)[self.t(E)]
@@ -61,8 +72,6 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
                     updated_features = softmaxed_coefficients * self.mlp_msgs[h](r_sender)
                 else:
                     updated_features = torch.cat((updated_features, softmaxed_coefficients * self.mlp_msgs[h](r_sender)),dim=-1)
-
-            # Perform kernel transform
             return updated_features
 
         return kernel_factor_2
