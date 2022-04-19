@@ -22,11 +22,7 @@ $ pip install -r requirements.txt
 
 For an in-depth explanation of the library, refer to the mini-project report. For benchmarking code, see attached Google Colab notebook.
 
-### Tests
-
 You can test most of the code (as much as custom layers are testable) using `pytest`.
-
-### Formating style
 
 We generally use [Python Black](https://github.com/psf/black) for code formatting.
 
