@@ -16,6 +16,8 @@ $ cd Cat-GNN
 $ pip install -r requirements.txt
 ```
 
+Make sure that `torch` version is at least 1.10, as one of the `BaseMPNNLayer` methods uses `torch.isin` which is only available from 1.10.
+
 **TODO**: probably easier to simply provide `environment.yml` file...
 
 ## Implementation details
