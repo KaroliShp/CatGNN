@@ -27,7 +27,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
         return self.transform_backwards(V, E, X)
@@ -40,7 +40,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
     def define_kernel(self, pullback):
         def kernel(E):
-            return self.norm.view(-1, 1) * self.mlp_msg(pullback(E))
+            return self.edge_weights.view(-1, 1) * self.mlp_msg(pullback(E))
 
         return kernel
 
@@ -93,7 +93,7 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
         return self.transform_backwards(V, E, X, kernel_factor=True)
@@ -114,7 +114,7 @@ class GCNLayer_Factored_MPNN_2(BaseMPNNLayer_2):
     def define_kernel_factor_2(self, kernel_factor_1):
         def kernel_factor_2(E):
             r_sender, r_receiver = kernel_factor_1(E)
-            return self.norm.view(-1, 1) * self.mlp_msg(r_sender)
+            return self.edge_weights.view(-1, 1) * self.mlp_msg(r_sender)
 
         return kernel_factor_2
 
@@ -163,7 +163,7 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
         return self.transform_forwards(V, E, X)
@@ -172,7 +172,7 @@ class GCNLayer_MPNN_2_Forwards(BaseMPNNLayer_2):
         return f(self.s(E)), E
 
     def kernel(self, E, pulledback_features):
-        return self.norm.view(-1, 1) * self.mlp_msg(pulledback_features)
+        return self.edge_weights.view(-1, 1) * self.mlp_msg(pulledback_features)
 
     def pushforward(self, V, edge_messages):
         E, bag_indices = self.t_1(V)

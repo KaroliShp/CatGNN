@@ -101,17 +101,3 @@ class GATLayer_MPNN_2(BaseMPNNLayer_2):
             m.reset_parameters()
         for a in self.attention_as:
             a.reset_parameters()
-
-
-if __name__ == "__main__":
-    V = torch.tensor([0, 1, 2, 3], dtype=torch.int64)
-
-    # E is a set of edges - usual sparse representation in PyG
-    E = torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 1]], dtype=torch.int64)
-
-    # Feature matrix - usual representation
-    X = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float)
-
-    example_layer = GATLayer_MPNN_2(2, 2, heads=8)
-    print(example_layer(V, E, X))
-    example_layer.reset_parameters()

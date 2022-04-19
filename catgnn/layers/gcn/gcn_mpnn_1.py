@@ -17,7 +17,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
     def __init__(self, in_dim: int, out_dim: int):
         super().__init__()
 
-        self.mlp_msg = nn.Linear(in_dim, out_dim)  # \psi
+        self.mlp_msg = nn.Linear(in_dim, out_dim, bias=False)  # \psi
         self.mlp_update = nn.LeakyReLU()  # \phi
 
     def forward(self, V, E, X):
@@ -26,7 +26,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform
         return self.transform_backwards(V, E, X)
@@ -39,7 +39,7 @@ class GCNLayer_MPNN_1(BaseMPNNLayer_1):
 
     def define_kernel(self, pullback):
         def kernel(e):
-            return self.norm[e[2]] * self.mlp_msg(pullback(e))
+            return self.edge_weights[e[2]] * self.mlp_msg(pullback(e))
 
         return kernel
 

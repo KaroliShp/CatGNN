@@ -28,7 +28,7 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.norm = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
 
         # Do integral transform (this is done like in PyG - not sure if this is the best way to do it?)
         # Why then not just always let K=1 and do this by stacking the layers? Why K as an argument?
@@ -46,7 +46,7 @@ class SGCLayer_MPNN_2(BaseMPNNLayer_2):
 
     def define_kernel(self, pullback):
         def kernel(E):
-            return pullback(E) * self.norm.view(-1, 1)
+            return pullback(E) * self.edge_weights.view(-1, 1)
 
         return kernel
 

@@ -32,7 +32,7 @@ def run_benchmark(
     lr=0.01,
     weight_decay=5e-4,
     num_epochs=200,
-    debug=False,
+    debug=True,
     sender_to_receiver=True,
     **kwargs,
 ):
@@ -88,16 +88,16 @@ def repeat_benchmark(repeat, func, experiment_name, *args, **kwargs):
     )
 
 
-def run_pytorch_benchmarks_gcn(name="Cora", repeat=2):
-    # Public splits
-    """
+def run_pytorch_benchmarks_gcn_1(name="Cora", repeat=2):
     experiment_0 = f'{name} CatGNN GCN (1)'
     train_res_0, val_res_0, test_res_0, runtime_res_0 = repeat_benchmark(repeat, run_benchmark, experiment_0, name, GCN_1_Paper)
 
     print('')
     print(stringify_statistics(experiment_0, train_res_0, val_res_0, test_res_0, runtime_res_0))
-    """
 
+
+def run_pytorch_benchmarks_gcn_2(name="Cora", repeat=2):
+    # Public splits
     experiment_1 = f'{name} CatGNN GCN (2), public split'
     train_res_1, val_res_1, test_res_1, runtime_res_1 = repeat_benchmark(repeat, run_benchmark, experiment_1, name, GCN_2_Paper)
 
