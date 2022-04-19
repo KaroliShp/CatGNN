@@ -7,12 +7,13 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 
 
 class GINLayer_MPNN_2(BaseMPNNLayer_2):
-    def __init__(self, mlp_update, eps: float = 0.0, train_eps: bool = True):
+    def __init__(self, mlp_update, device, eps: float = 0.0, train_eps: bool = True):
         super().__init__()
 
+        self.device = device
         self.eps_0 = eps
         self.train_eps = train_eps
-        self.eps = nn.Parameter(torch.Tensor([eps]), requires_grad=train_eps)
+        self.eps = nn.Parameter(torch.tensor([eps]), requires_grad=train_eps).to(device)
         self.mlp_update = mlp_update
 
     def forward(self, V, E, X):
@@ -56,4 +57,4 @@ class GINLayer_MPNN_2(BaseMPNNLayer_2):
         torch_geometric.nn.inits.reset(self.mlp_update)
         self.eps = nn.Parameter(
             torch.Tensor([self.eps_0]), requires_grad=self.train_eps
-        )
+        ).to(self.device)

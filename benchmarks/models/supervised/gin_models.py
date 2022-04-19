@@ -11,6 +11,10 @@ import torch_geometric.nn
 from catgnn.layers.gin.gin_mpnn_2 import GINLayer_MPNN_2
 
 
+device = f'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = torch.device(device)
+
+
 class GIN_2(torch.nn.Module):
     def __init__(self, dataset, num_layers, hidden):
         super().__init__()
@@ -20,8 +24,8 @@ class GIN_2(torch.nn.Module):
                 ReLU(),
                 Linear(hidden, hidden),
                 ReLU(),
-                BN(hidden),
-            ),
+                BN(hidden)
+            ), device=device,
             train_eps=True,
         )
         self.convs = torch.nn.ModuleList()
@@ -34,7 +38,7 @@ class GIN_2(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ),
+                    ), device=device,
                     train_eps=True,
                 )
             )
@@ -132,7 +136,7 @@ class GIN0_2(torch.nn.Module):
                 Linear(hidden, hidden),
                 ReLU(),
                 BN(hidden),
-            ),
+            ), device=device,
             train_eps=False,
         )
         self.convs = torch.nn.ModuleList()
@@ -145,7 +149,7 @@ class GIN0_2(torch.nn.Module):
                         Linear(hidden, hidden),
                         ReLU(),
                         BN(hidden),
-                    ),
+                    ), device=device,
                     train_eps=False,
                 )
             )
