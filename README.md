@@ -4,6 +4,32 @@ Prototype for a category theory-based GNN library. Implementation of [Graph Neur
 
 The goal of CatGNN is to provide a generic GNN template using a new set of primitive operators coming from category theory and abstract algebra. The user only needs to provide a specific implementation of the new primitives to implement any GNN.
 
+## Setup
+
+CatGNN was developed on `Python 3.9.12`. Since it is not an official package yet, you can use conda:
+
+```bash
+$ conda create -n catgnn python=3.9.12
+$ conda activate catgnn
+$ git clone https://github.com/KaroliShp/Cat-GNN.git
+$ cd Cat-GNN
+$ pip install -r requirements.txt
+```
+
+**TODO**: probably easier to simply provide `environment.yml` file...
+
+## Implementation details
+
+For an in-depth explanation of the library, refer to the mini-project report. For benchmarking code, see attached Google Colab notebook.
+
+### Tests
+
+You can test most of the code (as much as custom layers are testable) using `pytest`.
+
+### Formating style
+
+We generally use [Python Black](https://github.com/psf/black) for code formatting.
+
 ## Basic example
 
 We can implement a basic Message-Passing GNN (MPNN) layer that applies a simple linear transformation to sender features and uses standard pullback & pushforward operators as follows:
@@ -70,25 +96,3 @@ class BasicMPNNLayer(BaseMPNNLayer_2):
         # USER IMPLEMENTATION
         return output
 ```
-
-## Setup
-
-The library was developed on `Python 3.9.12`. Since the package is not on pip yet, you can use conda:
-
-```bash
-$ conda create -n catgnn python=3.9.12
-$ conda activate catgnn
-$ git clone https://github.com/KaroliShp/Cat-GNN.git
-$ cd Cat-GNN
-$ pip install -r requirements.txt
-```
-
-**TODO**: probably easier to simply provide `environment.yml` file...
-
-## Implementation details & benchmarking
-
-For an explanation of each primitive and the base class implementation, see the report pdf. For benchmarking code, see attached Google Colab notebooks.
-
-## Tests
-
-You can test most of the code (as much as custom layers are testable) using `pytest`.
