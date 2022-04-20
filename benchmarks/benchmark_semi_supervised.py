@@ -32,7 +32,7 @@ def run_benchmark(
     lr=0.01,
     weight_decay=5e-4,
     num_epochs=200,
-    debug=True,
+    debug=False,
     sender_to_receiver=True,
     **kwargs,
 ):

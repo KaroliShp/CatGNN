@@ -27,7 +27,7 @@ class GCNLayer_MPNN_2(BaseMPNNLayer_2):
 
         # Compute normalization as edge weights
         self.degrees = get_degrees(V, E)
-        self.edge_weights = torch.sqrt(1 / (self.degrees[E[0]] * self.degrees[E[1]]))
+        self.edge_weights = torch.sqrt(1 / (self.degrees[self.s(E)] * self.degrees[self.t(E)]))
 
         # Do integral transform
         return self.transform_backwards(V, E, X)
