@@ -1,5 +1,7 @@
 # CatGNN 🐱
 
+[![Tests](https://github.com/KaroliShp/CatGNN/actions/workflows/actions.yml/badge.svg?branch=master)](https://github.com/KaroliShp/CatGNN/actions/workflows/actions.yml)
+
 Prototype for a category theory-based GNN library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2022)](https://arxiv.org/abs/2203.15544) submitted as coursework for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
 
 The goal of CatGNN is to provide a generic GNN template using a new set of primitives coming from category theory and abstract algebra. Similarly to PyTorch Geomtric, user only needs to provide implementations of the new primitives to implement any GNN.
