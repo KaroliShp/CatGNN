@@ -58,6 +58,62 @@ class GINConv(MessagePassing):
     def update(self, aggr_out):
         return aggr_out
 
+
+### GIN convolution along the graph structure
+class CatGNN_GINConv(BaseMPNNLayer_2):
+    def __init__(self, emb_dim: int):
+        super().__init__()
+
+        self.mlp = torch.nn.Sequential(torch.nn.Linear(emb_dim, 2*emb_dim), torch.nn.BatchNorm1d(2*emb_dim), torch.nn.ReLU(), torch.nn.Linear(2*emb_dim, emb_dim))
+        self.eps = torch.nn.Parameter(torch.Tensor([0]))
+
+        self.bond_encoder = BondEncoder(emb_dim = emb_dim)
+
+    def forward(self, X, E, edge_attr):
+        # V
+        V = torch.arange(0, X.shape[0], dtype=torch.int64, device=E.device)
+
+        self.edge_weights = self.bond_encoder(edge_attr)
+        return self.mlp((1 + self.eps) * X + self.transform_backwards(V, E, X))
+
+    def define_pullback(self, f):
+        def pullback(E):
+            return f(self.s(E))
+
+        return pullback
+
+    def define_kernel(self, pullback):
+        def kernel(E):
+            return F.relu(pullback(E) + self.edge_weights)
+
+        return kernel
+
+    def define_pushforward(self, kernel):
+        def pushforward(V):
+            E, bag_indices = self.t_1(V)
+            return kernel(E), bag_indices
+
+        return pushforward
+
+    def define_aggregator(self, pushforward):
+        def aggregator(V):
+            edge_messages, bag_indices = pushforward(V)
+            aggregated = torch_scatter.scatter_add(
+                edge_messages.T, bag_indices.repeat(edge_messages.T.shape[0], 1)
+            ).T
+            # There is a bug if the last bag indices are missing, then aggregated will have a different shape.
+            # Not sure if this is also a bug in the main code?
+            if aggregated.shape[0] != V.shape[0]:
+                aggregated = torch.vstack((aggregated, torch.zeros((V.shape[0]-aggregated.shape[0]),*aggregated.shape[1:], device=V.device)))
+            return aggregated[V]
+
+        return aggregator
+
+    def update(self, X, output):
+        # Not sure if better to leave this as this and add update in the actual model (like PyG)
+        # or to add the update here (same thing applies to all other layers)
+        return output
+
 ### GCN convolution along the graph structure
 class GCNConv(MessagePassing):
     def __init__(self, emb_dim):
@@ -68,9 +124,6 @@ class GCNConv(MessagePassing):
         self.bond_encoder = BondEncoder(emb_dim = emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
-        print(x.shape)
-        print(edge_index.shape)
-        print(edge_attr.shape)
         x = self.linear(x)
         edge_embedding = self.bond_encoder(edge_attr)
 
@@ -86,9 +139,6 @@ class GCNConv(MessagePassing):
         return self.propagate(edge_index, x=x, edge_attr = edge_embedding, norm=norm) + F.relu(x + self.root_emb.weight) * 1./deg.view(-1,1)
 
     def message(self, x_j, edge_attr, norm):
-        print(x_j.shape)
-        print(edge_attr.shape)
-        print('-------')
         return norm.view(-1, 1) * F.relu(x_j + edge_attr)
 
     def update(self, aggr_out):
@@ -195,6 +245,8 @@ class GNN_node(torch.nn.Module):
                 self.convs.append(GCNConv(emb_dim))
             elif gnn_type == 'catgnn-gcn':
                 self.convs.append(CatGNN_GCNConv(emb_dim))
+            elif gnn_type == 'catgnn-gin':
+                self.convs.append(CatGNN_GINConv(emb_dim))
             else:
                 raise ValueError('Undefined GNN type called {}'.format(gnn_type))
 
@@ -405,6 +457,8 @@ def main(args=None):
         model = GNN(gnn_type = 'gcn', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
     elif args.gnn == 'catgnn-gcn':
         model = GNN(gnn_type = 'catgnn-gcn', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+    elif args.gnn == 'catgnn-gin':
+        model = GNN(gnn_type = 'catgnn-gin', num_tasks = dataset.num_tasks, num_layer = args.num_layer, emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
     else:
         raise ValueError('Invalid GNN type')
 
