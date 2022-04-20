@@ -22,7 +22,9 @@ Make sure that `torch` version is at least 1.10, as one of the `BaseMPNNLayer` m
 
 ## Implementation details
 
-For an in-depth explanation of the library, refer to the mini-project report. For benchmarking code, see attached Google Colab notebook.
+For an in-depth explanation of the library, refer to the mini-project report. 
+
+For benchmarking code, see attached Google Colab notebook.
 
 You can test most of the code (as much as custom layers are testable) using `pytest`.
 
