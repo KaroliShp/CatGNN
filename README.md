@@ -17,11 +17,11 @@ To test on GPU, simply upload `gpu_tests.ipynb` notebook to Google Colab, upload
 To test locally on CPU, you can use `environment.yml` with conda as follows:
 
 ```bash
+$ git clone https://github.com/KaroliShp/CatGNN.git
+$ cd CatGNN
 $ conda env create -f environment.yml --name catgnn
 $ conda activate catgnn
 $ pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-1.11.0+cpu.html
-$ git clone https://github.com/KaroliShp/CatGNN.git
-$ cd CatGNN
 $ export PYTHONPATH="$PWD"
 ```
 
