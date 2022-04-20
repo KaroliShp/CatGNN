@@ -4,33 +4,32 @@
 
 Prototype for a category theory-based GNN library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2022)](https://arxiv.org/abs/2203.15544) submitted as coursework for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
 
-The goal of CatGNN is to provide a generic GNN template using a new set of primitives coming from category theory and abstract algebra. Similarly to PyTorch Geomtric, user only needs to provide implementations of the new primitives to implement any GNN.
+The goal of CatGNN is to provide a generic GNN template using a new set of primitives coming from category theory and abstract algebra. Similarly to PyTorch Geomtric, the user only needs to provide implementations of the new primitives to implement any MPNN.
 
 ## Setup
 
-CatGNN was developed on `Python 3.9.12`. To test on GPU, simply import the `gpu_tests.ipynb` notebook to Google Colab and follow the instructions. To test locally, since it is not an official package yet, you can use `environment.yml` with conda. Alternatively:
+At some point CatGNN should become a python package installable through pip and conda. Until then, you can follow instructions here. 
+
+CatGNN was developed on `Python 3.9.12`, but should be fine on `Python 3.7+`. 
+
+To test on GPU, simply upload `gpu_tests.ipynb` notebook to Google Colab, upload source files to Google Drive, mount Google Drive to the notebook and follow the instructions. 
+
+To test locally on CPU, you can use `environment.yml` with conda as follows:
 
 ```bash
-$ conda create -n catgnn python=3.9.12
+$ conda env create -f environment.yml --name catgnn
 $ conda activate catgnn
+$ pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-1.11.0+cpu.html
 $ git clone https://github.com/KaroliShp/CatGNN.git
 $ cd CatGNN
-$ pip install -r requirements.txt
+$ export PYTHONPATH="$PWD"
 ```
 
-Make sure that `torch` version is at least 1.10, as one of the `BaseMPNNLayer` methods uses `torch.isin()` method which is only available from 1.10.
+To test locally on GPU, change `cpu` to your CUDA version for relevant packages.
 
 ## Implementation details
 
-For an in-depth explanation of the library, refer to the mini-project report `report.pdf`. 
-
-For benchmarking, see `gpu_tests.ipynb` notebook.
-
-You can test most of the code (as much as custom user layers are testable) using `pytest`.
-
-We generally use [Python Black](https://github.com/psf/black) for code formatting.
-
-For development history, see Issues and Projects tabs.
+For an in-depth explanation of the library, refer to the mini-project report `report.pdf`. For benchmarking, see `gpu_tests.ipynb` notebook. You can test most of the code (as much as custom user layers are testable) using `pytest`. We generally use [Python Black](https://github.com/psf/black) for code formatting. For development history, see Issues and Projects tabs.
 
 ## Basic example
 
@@ -44,7 +43,6 @@ from catgnn.integral_transform.mpnn_2 import BaseMPNNLayer_2
 
 
 # Custom layer must extend one of the base classes (BaseMPNNLayer_2)
-# BaseMPNNLayer_2 is a subclass of torch.nn.Module
 class BasicMPNNLayer(BaseMPNNLayer_2):
     def __init__(self, in_dim, out_dim):
         super().__init__()
@@ -52,7 +50,6 @@ class BasicMPNNLayer(BaseMPNNLayer_2):
         self.mlp = nn.Linear(in_dim, out_dim, bias=False)
 
     def forward(self, V, E, X):
-        # USER IMPLEMENTATION
         # Perform integral transform by passing V, E and X
         return self.transform_backwards(V, E, X, kernel_factor=False)
 
