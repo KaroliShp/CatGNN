@@ -11,8 +11,8 @@ CatGNN was developed on `Python 3.9.12`. Since it is not an official package yet
 ```bash
 $ conda create -n catgnn python=3.9.12
 $ conda activate catgnn
-$ git clone https://github.com/KaroliShp/Cat-GNN.git
-$ cd Cat-GNN
+$ git clone https://github.com/KaroliShp/CatGNN.git
+$ cd CatGNN
 $ pip install -r requirements.txt
 ```
 
@@ -29,6 +29,8 @@ For benchmarking code, see attached Google Colab notebook.
 You can test most of the code (as much as custom layers are testable) using `pytest`.
 
 We generally use [Python Black](https://github.com/psf/black) for code formatting.
+
+For development history, see Issues and Projects tabs.
 
 ## Basic example
 
