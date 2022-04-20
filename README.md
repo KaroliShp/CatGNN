@@ -1,12 +1,12 @@
 # CatGNN 🐱
 
-Prototype for a category theory-based GNN library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2019)](https://arxiv.org/abs/2203.15544) submitted as coursework for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
+Prototype for a category theory-based GNN library. Implementation of [Graph Neural Networks are Dynamic Programmers (Dudzik and Veličković, 2022)](https://arxiv.org/abs/2203.15544) submitted as coursework for *L45: Representation Learning on Graphs and Networks* course at Cambridge.
 
-The goal of CatGNN is to provide a generic GNN template using a new set of primitive operators coming from category theory and abstract algebra. The user only needs to provide a specific implementation of the new primitives to implement any GNN.
+The goal of CatGNN is to provide a generic GNN template using a new set of primitives coming from category theory and abstract algebra. Similarly to PyTorch Geomtric, user only needs to provide implementations of the new primitives to implement any GNN.
 
 ## Setup
 
-CatGNN was developed on `Python 3.9.12`. Since it is not an official package yet, you can use conda:
+CatGNN was developed on `Python 3.9.12`. To test on GPU, simply import the `gpu_tests.ipynb` notebook to Google Colab and follow the instructions. To test locally, since it is not an official package yet, you can use `environment.yml` with conda. Alternatively:
 
 ```bash
 $ conda create -n catgnn python=3.9.12
@@ -16,17 +16,15 @@ $ cd CatGNN
 $ pip install -r requirements.txt
 ```
 
-Make sure that `torch` version is at least 1.10, as one of the `BaseMPNNLayer` methods uses `torch.isin` which is only available from 1.10.
-
-**TODO**: probably easier to simply provide `environment.yml` file...
+Make sure that `torch` version is at least 1.10, as one of the `BaseMPNNLayer` methods uses `torch.isin()` method which is only available from 1.10.
 
 ## Implementation details
 
-For an in-depth explanation of the library, refer to the mini-project report. 
+For an in-depth explanation of the library, refer to the mini-project report `report.pdf`. 
 
-For benchmarking code, see attached Google Colab notebook.
+For benchmarking, see `gpu_tests.ipynb` notebook.
 
-You can test most of the code (as much as custom layers are testable) using `pytest`.
+You can test most of the code (as much as custom user layers are testable) using `pytest`.
 
 We generally use [Python Black](https://github.com/psf/black) for code formatting.
 
